@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="UTF-8">
+      <title>Temperature measurement</title>
+   </head>
+   <script>
+      var xmlHttp = null;
+
+      function pushTheButton(door)
+      {
+         var url = "/temp.lua;
+
+         xmlHttp = new XMLHttpRequest();
+         xmlHttp.open("GET", url, true);
+         xmlHttp.send( null );
+      }
+   </script>
+   <body>
+      <a href="#" onclick="pushTheButton(1);" class="button button-1">
+          <span>I</span>
+      </a>
+      <a href="#" onclick="pushTheButton(2); " class="button button-2">
+          <span>II</span>
+      </a>
+   </body>
+</html>
+
