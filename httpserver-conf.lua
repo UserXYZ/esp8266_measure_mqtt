@@ -15,8 +15,8 @@ conf.auth = auth
 
 local wlan = {}
 -- wifi config etc
-wlan.ssid="Confuzed"
-wlan.pwd="StaTeBriga123"
+wlan.ssid="Mali_Zeka"
+wlan.pwd="StaTeBriga123!?"
 conf.wlan = wlan
 
 local misc = {}
