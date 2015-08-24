@@ -76,7 +76,6 @@ tmr.alarm(6,delay,1,function()
             gtab[k]=v
         end
     end)
-    coroutine.yield()
 end)
 collectgarbage()
 
