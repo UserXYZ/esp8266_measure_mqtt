@@ -24,6 +24,8 @@ local misc = {}
 misc.debug = false
 -- measuring rate in seconds, decimal value allowed
 misc.wait = 5
+-- pin on which the sensors are connected
+misc.pin = 4
 conf.misc = misc
 
 return conf
