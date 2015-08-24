@@ -71,11 +71,12 @@ end
 -- start timer measuring and putting results into global table gtab
 tmr.wdclr()
 tmr.alarm(6,delay,1,function()
-    temp.readT(4,function(r)
+    temp.readT(conf.misc.pin,function(r)
         for k,v in pairs(r) do
             gtab[k]=v
         end
     end)
+    coroutine.yield()
 end)
 collectgarbage()
 
