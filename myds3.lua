@@ -2,36 +2,6 @@ local M
 -- code begin
 local conf = dofile("httpserver-conf.lc")
 
-local function setup(pin)
-    local count = 0
-    local rom
-    tbl = {}
-    ow.setup(pin)
-    repeat
-        tmr.wdclr()
-        count = count + 1
-        ow.reset_search(pin)
-        rom = ow.search(pin)
-    until((rom ~= nil) or (count > 100))
-
-    if (rom == nil) then
-        if conf.misc.debug then print("No (more) devices.") end
-    else
-        if conf.misc.debug then print ("Device type, serial,crc: "..string.format("%02x-%02x%02x%02x%02x%02x%02x-%02x",rom:byte(1,8))) end
-        crc = ow.crc8(string.sub(rom,1,7))
-        if (crc == rom:byte(8)) then
-            if ((rom:byte(1) == 0x10) or (rom:byte(1) == 0x28)) then
-                if conf.misc.debug then print("Device is a DS18x20 family device.") end
-                tbl[#tbl+1]=rom
-            else
-                if conf.misc.debug then print("Device family is not recognized.") end
-            end
-        else
-            if conf.misc.debug then print("CRC is not valid!") end
-        end
-    end
-end
-
 local format_addr = function(a)
     return ("%02x-%02x%02x%02x%02x%02x%02x"):format(
         a:byte(1),
