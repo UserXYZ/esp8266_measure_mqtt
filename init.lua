@@ -57,7 +57,7 @@ tmr.alarm(1, 5000, 1, function()
    end
 end)
 
-local temp=require("myds2")
+local temp=require("myds3")
 gtab=nil
 gtab={}
 
@@ -70,7 +70,7 @@ else
 end
 -- start timer measuring and putting results into global table gtab
 tmr.wdclr()
-tmr.alarm(6,delay,1,function()
+tmr.alarm(6, delay,1,function()
     temp.readT(conf.misc.pin,function(r)
         for k,v in pairs(r) do
             gtab[k]=v

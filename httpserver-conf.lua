@@ -28,4 +28,14 @@ misc.wait = 5
 misc.pin = 4
 conf.misc = misc
 
+local mqtt = {}
+mqtt.clientid = "esp8266_home"
+mqtt.secure = false
+mqtt.user = ""
+mqtt.password = ""
+mqtt.broker = "10.20.30.10"
+mqtt.port = 9001
+mqtt.topic = esp8266
+conf.mqtt = mqtt
+
 return conf
