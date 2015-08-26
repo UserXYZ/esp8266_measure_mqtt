@@ -29,13 +29,13 @@ misc.pin = 4
 conf.misc = misc
 
 local mqtt = {}
-mqtt.clientid = "esp8266_home"
+mqtt.clientid = "MYesp8266_work"
 mqtt.secure = false
 mqtt.user = ""
 mqtt.password = ""
-mqtt.broker = "10.20.30.10"
-mqtt.port = 9001
-mqtt.topic = esp8266
+mqtt.broker = "broker.mqttdashboard.com"
+mqtt.port = 1883
+mqtt.topic = "/MYesp8266"
 conf.mqtt = mqtt
 
 return conf
