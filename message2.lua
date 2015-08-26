@@ -25,16 +25,18 @@ else
 end
 
 local function msgSend(m,topic, msg)
-    m:publish(topic, msg, 0, 0, function(m) print("data sent") end)
+    m:publish(topic, msg, 0, 0, function(m) 
+        if conf.misc.debug then print("data sent") end
+    end)
 end
 
 local function stop(m)
-    m:on("offline", function(m) end)
+    m:on("offline", function(m) print("quitting now") end)
     m:close()
 end
 
 local function setup()
-    print("setup start")
+    if conf.misc.debug then print("setup start") end
     m = mqtt.Client(clientid, 120, user, pwd)
     m:lwt("/lwt", clientid.." died", 0, 0)
 
@@ -64,7 +66,7 @@ local function setup()
             end)
         end
     end)
-    print("setup end")
+    if conf.misc.debug then print("setup end") end
     return(m)
 end
 
