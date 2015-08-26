@@ -1,4 +1,14 @@
-mqtt_client = {}
+local modname = ...
+local M = {}
+_G[modname] = M
+
+local tmr = tmr
+local mqtt = mqtt
+local wifi = wifi
+local print = print
+local dofile = dofile
+-- Limited to local environment
+setfenv(1,M)
 
 local conf = dofile("httpserver-conf.lc")
 clientid = conf.mqtt.clientid
@@ -14,22 +24,16 @@ else
     secure = 0
 end
 
--- debug test
-broker="broker.mqttdashboard.com"
-port = 1883
-clientid="MYesp8266"
-topic="/MYtest"
-
-function mqtt_client.msgSend(m,topic, msg)
+local function msgSend(m,topic, msg)
     m:publish(topic, msg, 0, 0, function(conn) print("data sent") end)
 end
 
-function mqtt_client.stop(m)
+local function stop(m)
     m:on("offline", function(con) end)
     m:close()
 end
 
-function mqtt_client.setup()
+local function setup()
     print("setup start")
     m = mqtt.Client(clientid, 120, user, pwd)
 --      m:on("connect", function(conn) print ("reconnected to broker") end)
@@ -57,7 +61,7 @@ function mqtt_client.setup()
             m:connect(broker, 1883, 0, function(conn)
                 print("connected")
                 m:subscribe(topic,0, function(conn)
-                    mqtt_client.msgSend(m,topic, "test by "..clientid)
+                    msgSend(m,topic, "test by "..clientid)
                 end)
             end)
         end
@@ -66,5 +70,12 @@ function mqtt_client.setup()
     return(m)
 end
 
-return mqtt_client
+-- Return module table
+  -- expose
+  M = {
+    setup = setup,
+    stop = stop,
+    msgSend = msgSend,
+  }
+return M
 --print(cjson.encode({key="value"}))

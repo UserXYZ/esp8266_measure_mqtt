@@ -48,7 +48,7 @@ tmr.alarm(1, 5000, 1, function()
       else
          print('IP: ',ip)
          -- Uncomment to automatically start the server in port 80
-         dofile("httpserver.lc")(8008)
+         --dofile("httpserver.lc")(8008)
       end
       tmr.stop(1)
       joinCounter = nil
@@ -66,7 +66,7 @@ if delay < 2000 or delay > 3600000 then
     print("Measuring timeout out of bounds, defaulting to 5s")
     delay=5000
 else
-    print("Starting measurement every "..conf.misc.wait.." seconds")
+    print("Starting measurement every "..conf.misc.wait.." second(s)")
 end
 -- start timer measuring and putting results into global table gtab
 tmr.wdclr()
@@ -78,23 +78,4 @@ tmr.alarm(6, delay,1,function()
     end)
 end)
 collectgarbage()
-
---[[
-temp.readT(4,function(r) for k,v in pairs(r) do gtab[k]=v end end)
-
-tmr.alarm(6,5000,1,function() 
-    temp.readT(4,function(r)
-        for a,b in pairs(gtab) do
-            print(a,b)
-        end
-    end)
-end)
-collectgarbage()
-tmr.wdclr()
-
-for a,b in pairs(gtab) do
-    print(a, string.format("%.3f",b))
-end
-
-]]--
 
