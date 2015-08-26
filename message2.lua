@@ -26,7 +26,7 @@ end
 
 local function msgSend(m,topic, msg)
     m:publish(topic, msg, 0, 0, function(m)
-        if conf.misc.debug then 
+        if conf.misc.debug then
             print("mqtt data sent")
         else
             print("*")
@@ -69,7 +69,7 @@ local function setup()
         if wifi.sta.status() == 5 then
             tmr.stop(2)
             tmr.wdclr()
-            m:connect(broker, 1883, 0, function(m)
+            m:connect(broker, port, 0, function(m)
                 print("connected")
                 m:subscribe(topic,0, function(m)
                     msgSend(m,topic, "init by "..clientid)
