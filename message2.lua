@@ -34,7 +34,7 @@ local function msgSend(m,topic, msg)
     end)
 end
 
-local function msgSendJson(m,topic, msg)
+local function msgSendJson(m,topic, tab)
 
     m:publish(topic, msg, 0, 0, function(m)
         if conf.misc.debug then print("mqtt data sent") end
