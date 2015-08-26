@@ -9,7 +9,7 @@ local compileAndRemoveIfNeeded = function(f)
    end
 end
 
-local serverFiles = {'myds2.lua', 'httpserver.lua', 'httpserver-basicauth.lua', 'httpserver-conf.lua', 'base64dec.lua', 'httpserver-request.lua', 'httpserver-static.lua', 'httpserver-header.lua', 'httpserver-error.lua'}
+local serverFiles = {'message2.lua', 'myds3.lua', 'httpserver.lua', 'httpserver-basicauth.lua', 'httpserver-conf.lua', 'base64dec.lua', 'httpserver-request.lua', 'httpserver-static.lua', 'httpserver-header.lua', 'httpserver-error.lua'}
 for i, f in ipairs(serverFiles) do compileAndRemoveIfNeeded(f) end
 
 compileAndRemoveIfNeeded = nil

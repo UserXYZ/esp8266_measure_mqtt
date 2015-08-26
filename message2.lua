@@ -25,8 +25,19 @@ else
 end
 
 local function msgSend(m,topic, msg)
-    m:publish(topic, msg, 0, 0, function(m) 
-        if conf.misc.debug then print("data sent") end
+    m:publish(topic, msg, 0, 0, function(m)
+        if conf.misc.debug then 
+            print("mqtt data sent")
+        else
+            print("*")
+        end
+    end)
+end
+
+local function msgSendJson(m,topic, msg)
+
+    m:publish(topic, msg, 0, 0, function(m)
+        if conf.misc.debug then print("mqtt data sent") end
     end)
 end
 
@@ -76,6 +87,7 @@ end
     setup = setup,
     stop = stop,
     msgSend = msgSend,
+    msgSendJson = msgSendJson
   }
 return M
 --print(cjson.encode({key="value"}))
