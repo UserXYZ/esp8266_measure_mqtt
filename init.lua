@@ -1,6 +1,3 @@
--- start configuration
-local conf = dofile("httpserver-conf.lc")
-
 -- start timer measuring and putting results into global table gtab
 local function startTemp()
     local temp=require("myds3")
@@ -85,7 +82,8 @@ end
 compileAndRemoveIfNeeded = nil
 serverFiles = nil
 collectgarbage()
-
+-- start configuration
+conf = dofile("httpserver-conf.lc")
 local wifiConfig = {}
 wifiConfig.mode = wifi.STATION
 wifiConfig.stationPointConfig = {}
@@ -116,10 +114,12 @@ tmr.alarm(1, 5000, 1, function()
          print('IP: ',ip)
          -- Uncomment to automatically start the server in port 80
          --dofile("httpserver.lc")(8008)
-startTemp()
-tmr.delay(2000)
-startMQTT()
-print("Started...")
+         if wifi.sta.status() == 5 then
+            print("Fully connected")
+            startTemp()
+            tmr.delay(2000000)
+            --startMQTT()
+         end
       end
       tmr.stop(1)
       joinCounter = nil
@@ -127,6 +127,14 @@ print("Started...")
       collectgarbage()
    end
 end)
+
+--repeat
+--until wifi.sta.status() == 5
+--print("Connected to Wifi, starting measurement and MQTT")
+--startTemp()
+--tmr.delay(2000000)
+--startMQTT()
+--print("Started...")
 
 --[[
 tmr.wdclr()
