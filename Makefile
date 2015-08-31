@@ -11,7 +11,7 @@ SPEED=9600
 # End of user config
 ######################################################################
 HTTP_FILES := $(wildcard http/*)
-LUA_FILES := init.lua httpserver.lua httpserver-request.lua httpserver-basicauth.lua base64dec.lua httpserver-conf.lua httpserver-static.lua httpserver-header.lua httpserver-error.lua
+LUA_FILES := message2.lua myds3.lua init.lua httpserver.lua httpserver-request.lua httpserver-basicauth.lua base64dec.lua httpserver-conf.lua httpserver-static.lua httpserver-header.lua httpserver-error.lua
 
 # Print usage
 usage:
