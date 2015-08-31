@@ -16,7 +16,6 @@ user = conf.mqtt.user
 pwd = conf.mqtt.password
 broker = conf.mqtt.broker
 port = conf.mqtt.port
-topic = conf.mqtt.topic
 secure = conf.mqtt.secure
 if conf.mqtt.secure then
     secure = 1
@@ -24,8 +23,19 @@ else
     secure = 0
 end
 
-local function msgSend(m,topic, msg)
-    m:publish(topic, msg, 0, 0, function(m)
+local function checkTopic(topic)
+    local t=""
+    if topic == "" or topic == nil then
+        t = conf.mqtt.topic
+    else
+        t = topic
+    end
+    return(t)
+end
+
+local function msgSend(m, topic, msg)
+    t = checkTopic(topic)
+    m:publish(t, msg, 0, 0, function(m)
         if conf.misc.debug then
             print("mqtt data sent")
         else
@@ -34,11 +44,26 @@ local function msgSend(m,topic, msg)
     end)
 end
 
-local function msgSendJson(m,topic, tab)
-
-    m:publish(topic, msg, 0, 0, function(m)
-        if conf.misc.debug then print("mqtt data sent") end
+local function msgSendJson(m, topic, tab)
+	local a,b, val
+	for a,b in pairs(tab)
+	do
+        val = string.format("%.3f",b)
+		msg = cjson.encode({a=b})
+	end
+    t = checkTopic(topic)
+    m:publish(t, msg, 0, 0, function(m)
+        if conf.misc.debug then
+			print("mqtt data sent")
+        else
+            print("+")
+        end
     end)
+end
+
+-- received message, do something with it (control gpio or whatever)
+local function msgRecv(topic, data)
+    print(topic..":"..data)
 end
 
 local function stop(m)
@@ -58,21 +83,25 @@ local function setup()
             m:connect(broker, port, secure, function() tmr.stop(3) end )
         end)
     end)
-
-    m:on("message", function(m, topic, data)
+-- handle received message    
+    if rtopic == "" or rtopic == nil then
+        rtopic = conf.mqtt.rtopic
+    end
+    m:on("message", function(m, rtopic, data)
         if data ~= nil then
-            print(topic..":"..data)
+            msgRecv(rtopic, data)
         end
     end)
-
+-- connect to broker and subscribe
     tmr.alarm(2, 1000, 1, function()
         if wifi.sta.status() == 5 then
             tmr.stop(2)
             tmr.wdclr()
             m:connect(broker, port, 0, function(m)
                 print("connected")
-                m:subscribe(topic,0, function(m)
-                    msgSend(m,topic, "init by "..clientid)
+                t = checkTopic(topic)
+                m:subscribe(t,0, function(m)
+                    msgSend(m,t, "init by "..clientid)
                 end)
             end)
         end
@@ -90,4 +119,3 @@ end
     msgSendJson = msgSendJson
   }
 return M
---print(cjson.encode({key="value"}))

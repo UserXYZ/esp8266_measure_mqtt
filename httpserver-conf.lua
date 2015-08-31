@@ -29,14 +29,16 @@ misc.pin = 4
 conf.misc = misc
 
 local mqtt = {}
-mqtt.clientid = "MYesp8266_work"
-mqtt.secure = false
-mqtt.user = ""
-mqtt.password = ""
+mqtt.clientid = "Confuzed_work"
+mqtt.secure = true
+mqtt.user = "guest"
+mqtt.password = "guest"
 --mqtt.broker = "broker.mqttdashboard.com"
-mqtt.broker = "test.mosquitto.org"
-mqtt.port = 1883
-mqtt.topic = "/MYesp8266"
+mqtt.broker = "mqtt.thingstud.io"
+mqtt.port = 9001
+mqtt.topic = "/Confuzed/work"
+mqtt.rtopic = "/Confuzed/work/todo"
+mqtt.delay = 10
 conf.mqtt = mqtt
 
 return conf
