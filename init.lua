@@ -46,7 +46,7 @@ tmr.alarm(1, 5000, 1, function()
       if joinCounter == joinMaxAttempts then
          print('Failed to connect to WiFi Access Point.')
       else
-         print('IP: ',ip)
+         print('Got IP: ',ip)
          -- Uncomment to automatically start the server in port 80
          --dofile("httpserver.lc")(8008)
       end
@@ -76,24 +76,22 @@ tmr.alarm(6, delay,1,function()
         end
     end)
 end)
-		-- start sending mqtt data
-
-			    local f=require("message2")
-				local val=""
-				local mdelay=conf.mqtt.delay*1000
-				if mdelay < 5000 or mdelay > 3600000 then
-					print("MQTT delay out of bounds, defaulting to 10s")
-					mdelay=10000
-				else
-					print("Starting sending MQTT data every "..conf.mqtt.delay.." second(s)")
-				end
-				-- start sending with default topic for now
-				local client=f.setup()
-				tmr.wdclr()
-				tmr.alarm(5,mdelay,1,function() for a,b in pairs(gtab) do
-					val=string.format("%.3f",b)
-					f.msgSend(client, conf.mqtt.topic, cjson.encode({temp=val}))
-					end
-				end)
+-- start sending mqtt data
+local f=require("message2")
+local mdelay=conf.mqtt.delay*1000
+if mdelay < 5000 or mdelay > 3600000 then
+	print("MQTT delay out of bounds, defaulting to 10s")
+	mdelay=10000
+else
+	print("Starting sending MQTT data every "..conf.mqtt.delay.." second(s)")
+end
+-- start sending with default topic for now
+local client=f.setup()
+tmr.wdclr()
+tmr.alarm(5,mdelay,1,function() for a,b in pairs(gtab) do
+	local val=string.format("%.3f",b)
+	f.msgSend(client, conf.mqtt.topic, cjson.encode({temp=val}))
+	end
+end)
 
 collectgarbage()

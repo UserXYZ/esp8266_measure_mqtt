@@ -15,8 +15,8 @@ conf.auth = auth
 
 local wlan = {}
 -- wifi config etc
-wlan.ssid="Confuzed"
-wlan.pwd="StaTeBriga123"
+wlan.ssid="Mali_Zeka"
+wlan.pwd="StaTeBriga123!?"
 conf.wlan = wlan
 
 local misc = {}
@@ -29,15 +29,15 @@ misc.pin = 4
 conf.misc = misc
 
 local mqtt = {}
-mqtt.clientid = "Confuzed_home"
+mqtt.clientid = "NOC_work"
 mqtt.secure = true
 mqtt.user = "guest"
 mqtt.password = "guest"
 --mqtt.broker = "broker.mqttdashboard.com"
 mqtt.broker = "mqtt.thingstud.io"
 mqtt.port = 9001
-mqtt.topic = "/Confuzed/home"
-mqtt.rtopic = "/Confuzed/home/todo"
+mqtt.topic = "/Confuzed/work"
+mqtt.rtopic = "/Confuzed/work/todo"
 mqtt.delay = 10
 conf.mqtt = mqtt
 
