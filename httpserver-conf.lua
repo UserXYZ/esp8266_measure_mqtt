@@ -38,7 +38,7 @@ mqtt.broker = "mqtt.thingstud.io"
 mqtt.port = 9001
 mqtt.topic = "/Confuzed/work"
 mqtt.rtopic = "/Confuzed/work/todo"
-mqtt.delay = 10
+mqtt.delay = 60
 conf.mqtt = mqtt
 
 return conf

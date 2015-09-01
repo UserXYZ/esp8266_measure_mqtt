@@ -84,7 +84,7 @@ local function setup()
             m:connect(broker, port, secure, function(m) tmr.stop(3) end)
         end)
     end)
--- handle received message    
+-- handle received message
     if rtopic == "" or rtopic == nil then
         rtopic = conf.mqtt.rtopic
     end
@@ -99,10 +99,9 @@ local function setup()
         if wifi.sta.status() == 5 then
             tmr.stop(2)
             m:connect(broker, 1883, 0, function(m)
-                print("connected")
-                t = checkTopic(conf.mqtt.topic)
-                m:subscribe(t, 0, function(m)
-                    msgSend(m, t, "init by "..clientid)
+                print("connected to "..broker..":"..port)
+                m:subscribe(conf.mqtt.rtopic, 0, function(m)
+					msgSend(m, conf.mqtt.rtopic, clientid.." waiting for command")
                 end)
             end)
         end
