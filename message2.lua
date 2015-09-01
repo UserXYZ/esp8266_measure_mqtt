@@ -62,8 +62,8 @@ local function msgSendJson(m, topic, tab)
 end
 
 -- received message, do something with it (control gpio or whatever)
-local function msgRecv(topic, data)
-    print(topic..":"..data)
+local function msgRecv(rtopic, data)
+    print(rtopic..":"..data)
 end
 
 local function stop(m)
@@ -74,13 +74,14 @@ end
 local function setup()
     if conf.misc.debug then print("setup start") end
     m = mqtt.Client(clientid, 120, user, pwd)
-    m:lwt("/lwt", clientid.." died", 0, 0)
 
+    m:lwt("/lwt", clientid.." died", 0, 0)
+-- if we go offline
     m:on("offline", function(m)
-        print ("reconnecting to "..broker)
+        print ("reconnecting to "..broker..":"..port)
         tmr.wdclr()
-        tmr.alarm(3, 5000, 0, function()
-            m:connect(broker, port, secure, function() tmr.stop(3) end )
+        tmr.alarm(3, 5000, 1, function()
+            m:connect(broker, port, secure, function(m) tmr.stop(3) end)
         end)
     end)
 -- handle received message    
@@ -93,15 +94,15 @@ local function setup()
         end
     end)
 -- connect to broker and subscribe
+    tmr.wdclr()
     tmr.alarm(2, 1000, 1, function()
         if wifi.sta.status() == 5 then
             tmr.stop(2)
-            tmr.wdclr()
-            m:connect(broker, port, 0, function(m)
+            m:connect(broker, 1883, 0, function(m)
                 print("connected")
-                t = checkTopic(topic)
-                m:subscribe(t,0, function(m)
-                    msgSend(m,t, "init by "..clientid)
+                t = checkTopic(conf.mqtt.topic)
+                m:subscribe(t, 0, function(m)
+                    msgSend(m, t, "init by "..clientid)
                 end)
             end)
         end
@@ -109,7 +110,6 @@ local function setup()
     if conf.misc.debug then print("setup end") end
     return(m)
 end
-
 -- Return module table
   -- expose
   M = {

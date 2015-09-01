@@ -1,68 +1,3 @@
--- start timer measuring and putting results into global table gtab
-local function startTemp()
-    local temp=require("myds3")
-    gtab=nil
-    gtab={}
-
-    local delay=conf.misc.wait*1000
-    if delay < 2000 or delay > 3600000 then
-        print("Measuring timeout out of bounds, defaulting to 5s")
-        delay=5000
-    else
-        print("Starting measurement every "..conf.misc.wait.." second(s)")
-    end
-
-    tmr.wdclr()
-    tmr.alarm(6, delay,1,function()
-        temp.readT(conf.misc.pin,function(r)
-            for k,v in pairs(r) do
-                gtab[k]=v
-            end
-        end)
-    end)
-end
--- start sending mqtt data
-local function startMQTT()
-
-    local f=require("message2")
-    local val=""
-
-    local mdelay=conf.mqtt.delay*1000
-    if mdelay < 5000 or mdelay > 3600000 then
-        print("MQTT delay out of bounds, defaulting to 10s")
-        mdelay=10000
-    else
-        print("Starting sending MQTT data every "..conf.mqtt.delay.." second(s)")
-    end
--- start sending with default topic for now
-    local client=f.setup()
-    tmr.wdclr()
-    tmr.alarm(5,mdelay,1,function() for a,b in pairs(gtab) do
-            val=string.format("%.3f",b)
-            f.msgSend(client, conf.mqtt.topic, cjson.encode({temp=val}))
-        end
-    end)
-end
--- start or not
-local function startup()
-    abort = false
-    print("Do you want to cancel startup in 5 seconds? Y/N [N]")
-    uart.on("data", 1, function(data)
-        if string.upper(data)=='Y' then
-            uart.on("data")
-            print("Cancelling startup...")
-            abort = true
-        elseif string.upper(data)=='N' then
-            uart.on("data")
-            print("OK, starting")
-            abort = false
-        else
-            print("Wrong input, starting anyway")
-            uart.on("data")
-            abort = false
-        end
-    end, 0)
-end
 -- prepare files
 local compileAndRemoveIfNeeded = function(f)
    if file.open(f) then
@@ -114,12 +49,6 @@ tmr.alarm(1, 5000, 1, function()
          print('IP: ',ip)
          -- Uncomment to automatically start the server in port 80
          --dofile("httpserver.lc")(8008)
-         if wifi.sta.status() == 5 then
-            print("Fully connected")
-            startTemp()
-            tmr.delay(2000000)
-            --startMQTT()
-         end
       end
       tmr.stop(1)
       joinCounter = nil
@@ -127,28 +56,44 @@ tmr.alarm(1, 5000, 1, function()
       collectgarbage()
    end
 end)
+-- start timer measuring and putting results into global table gtab
+local temp=require("myds3")
+gtab=nil
+gtab={}
+local delay=conf.misc.wait*1000
+if delay < 2000 or delay > 3600000 then
+		print("Measuring timeout out of bounds, defaulting to 5s")
+		delay=5000
+else
+		print("Starting measurement every "..conf.misc.wait.." second(s)")
+end
 
---repeat
---until wifi.sta.status() == 5
---print("Connected to Wifi, starting measurement and MQTT")
---startTemp()
---tmr.delay(2000000)
---startMQTT()
---print("Started...")
-
---[[
 tmr.wdclr()
-tmr.alarm(3,5000,0,function()
-    if wifi.sta.status() == 5 then
-        startup()
-        if abort == false then
-            startTemp()
-            tmr.delay(2000)
-            startMQTT()
-            print("Started...")
-            tmr.stop(3)
+tmr.alarm(6, delay,1,function()
+		temp.readT(conf.misc.pin,function(r)
+    		for k,v in pairs(r) do
+        		gtab[k]=v
         end
-    end
+    end)
 end)
-]]--
+		-- start sending mqtt data
+
+			    local f=require("message2")
+				local val=""
+				local mdelay=conf.mqtt.delay*1000
+				if mdelay < 5000 or mdelay > 3600000 then
+					print("MQTT delay out of bounds, defaulting to 10s")
+					mdelay=10000
+				else
+					print("Starting sending MQTT data every "..conf.mqtt.delay.." second(s)")
+				end
+				-- start sending with default topic for now
+				local client=f.setup()
+				tmr.wdclr()
+				tmr.alarm(5,mdelay,1,function() for a,b in pairs(gtab) do
+					val=string.format("%.3f",b)
+					f.msgSend(client, conf.mqtt.topic, cjson.encode({temp=val}))
+					end
+				end)
+
 collectgarbage()
