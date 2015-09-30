@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # [nodemcu-httpserver](https://github.com/marcoskirsch/nodemcu-httpserver)
 A (very) simple web server written in Lua for the ESP8266 running the NodeMCU firmware.
 
@@ -151,3 +152,7 @@ A (very) simple web server written in Lua for the ESP8266 running the NodeMCU fi
 
    * Compile your Lua scripts in order to reduce their memory usage. The server knows to serve and treat
    both .lua and .lc files as scripts.
+=======
+# esp8266_measure_mqtt
+ESP8266 measuring station with MQTT reporting, based on nodemcu-httpserver
+>>>>>>> esp8266_measure_mqtt@GitHub/master
