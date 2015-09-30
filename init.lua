@@ -56,7 +56,7 @@ tmr.alarm(1, 5000, 1, function()
       collectgarbage()
    end
 end)
-[[--
+--[[
 -- start timer measuring and putting results into global table gtab
 local temp=require("myds3")
 gtab=nil
@@ -96,6 +96,6 @@ tmr.alarm(5,mdelay,1,function() for a,b in pairs(gtab) do
 end)
 
 collectgarbage()
---]]
+]]--
 -- start measuring from DHT22
 -- start sending mqtt data
