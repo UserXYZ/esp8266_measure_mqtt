@@ -1,4 +1,4 @@
-# [https://github.com/UserXYZ/esp8266_measure_mqtt]
+# esp8266_measure_mqtt
 Very simple measuring and reporting station based witten in Lua for the ESP8266 running the NodeMCU firmware.
 Based on nodemcu-httpserver
 
