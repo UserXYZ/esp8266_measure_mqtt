@@ -1,4 +1,6 @@
 # esp8266_measure_mqtt
+======================
+
 Very simple measuring and reporting station based witten in Lua for the ESP8266 running the NodeMCU firmware.
 Based on nodemcu-httpserver
 
@@ -20,6 +22,3 @@ Freeboard and ThingStudio are used for generating dashboards an presenting them 
 Would use some parts of nodemcu-httpserver code to make my own http server with basic authentication for configuring the whole thing,
 adding knobs for turning specific measurings on or off etc.
 
-=======
-# esp8266_measure_mqtt
-ESP8266 measuring station with MQTT reporting, based on nodemcu-httpserver
