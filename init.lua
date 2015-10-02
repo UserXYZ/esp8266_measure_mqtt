@@ -58,7 +58,7 @@ tmr.alarm(1, 5000, 1, function()
 end)
 --[[
 -- start timer measuring and putting results into global table gtab
-local temp=require("myds3")
+local dstemp=require("myds3")
 gtab=nil
 gtab={}
 local delay=conf.misc.wait*1000
@@ -71,14 +71,14 @@ end
 
 tmr.wdclr()
 tmr.alarm(6, delay,1,function()
-		temp.readT(conf.misc.pin,function(r)
+		dstemp.readT(conf.misc.pin,function(r)
     		for k,v in pairs(r) do
         		gtab[k]=v
         end
     end)
 end)
 -- start sending mqtt data
-local f=require("message2")
+local mq=require("message2")
 local mdelay=conf.mqtt.delay*1000
 if mdelay < 5000 or mdelay > 3600000 then
 	print("MQTT delay out of bounds, defaulting to 10s")
@@ -87,7 +87,7 @@ else
 	print("Starting sending MQTT data every "..conf.mqtt.delay.." second(s)")
 end
 -- start sending with default topic for now
-local client=f.setup()
+local client=mq.setup()
 tmr.wdclr()
 tmr.alarm(5,mdelay,1,function() for a,b in pairs(gtab) do
 	local val=string.format("%.3f",b)
