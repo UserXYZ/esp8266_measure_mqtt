@@ -64,7 +64,7 @@
       else 
         print("iic config failed!") return nil
       end
-        print("init done")
+--        print("init done")
         i2c.setup(id, sda, scl, i2c.SLOW) 
         --get calibration coefficients.
         CO.AC1 = getShort(0xAA, true)
