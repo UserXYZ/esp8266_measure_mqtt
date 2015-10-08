@@ -31,9 +31,8 @@ local function getTime(tz,host,cb)
         if (h+tz)< 0 then h=24+h+tz end
 --        time=h..":"..m..":"..s
         time={h,m,s}
-        conn:close()
-        conn=nil
         collectgarbage("collect")
+        conn:close()
         cb(time)
     end)
     
