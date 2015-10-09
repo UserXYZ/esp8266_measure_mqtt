@@ -1,11 +1,17 @@
 local M
-
-local function resolveIP(fqdn)
-    local ipaddr
-    sk=net.createConnection(net.TCP, 0)
-    sk:dns(tostring(fqdn),function(conn,ip) ipaddr=tostring(ip) end)
-    sk = nil
-    return ipaddr
+ 
+local function resolveIP(host,cb)
+    local conn=net.createConnection(net.TCP, 0)
+    conn:dns(tostring(host),function(conn,ip)
+        if ip then
+            cb(ip)
+        else
+            print("DNS query failed for "..host)
+            cb(nil)
+        end
+    end)
+    conn = nil
+    collectgarbage("collect")
 end
 
 local function getTime(tz)
@@ -18,7 +24,7 @@ local function getTime(tz)
 end
 
 local function sync(ntpsrv)
-    sntp.sync(resolveIP(ntpsrv),
+    sntp.sync(ntpsrv,
     function() end,
     function()
         print('NTP sync failed!')
