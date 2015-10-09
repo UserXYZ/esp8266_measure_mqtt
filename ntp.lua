@@ -17,8 +17,9 @@ if _start == nil then _start = 0 end                        -- unix timestamp of
 local sk = nil
 
 local function resolvedns()
+    local ipaddr = nil
     local sk=net.createConnection(net.TCP, 0)
-    sk:dns(_cfg["ntpserver"],function(conn,ip) ipaddr=tostring(ip) end)
+    sk:dns(_cfg["ntpserver"],function(conn,ip) if ip then ipaddr=tostring(ip) end end)
     sk = nil
     return ipaddr
 end
