@@ -39,7 +39,7 @@ local s = net.createServer(net.TCP, 30)
 
          local function onReceive(connection, payload)
             collectgarbage()
-            local conf = dofile("httpserver-conf.lc")
+            local conf = dofile("config.lc")
             local auth
             local user = "Anonymous"
 
