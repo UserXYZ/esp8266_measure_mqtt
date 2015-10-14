@@ -13,7 +13,7 @@ SPEED=9600
 HTTP_FILES := $(wildcard http/*)
 LUA_FILES := message2.lua myds3.lua base64dec.lua bmp085.lua myNetTime.lua init.lua \
 httpserver.lua httpserver-request.lua httpserver-basicauth.lua \
-httpserver-conf.lua httpserver-static.lua httpserver-header.lua httpserver-error.lua
+config.lua httpserver-static.lua httpserver-header.lua httpserver-error.lua
 
 # Print usage
 usage:
@@ -38,4 +38,3 @@ upload_server: $(LUA_FILES)
 # Upload all
 upload_all: $(LUA_FILES) $(HTTP_FILES)
 	@$(NODEMCU-UPLOADER) -b $(SPEED) -p $(PORT) upload $(foreach f, $^, $(f))
-
