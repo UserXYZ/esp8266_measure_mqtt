@@ -10,7 +10,7 @@ local dofile = dofile
 -- Limited to local environment
 setfenv(1,M)
 
-local conf = dofile("httpserver-conf.lc")
+local conf = dofile("config.lc")
 clientid = conf.mqtt.clientid
 user = conf.mqtt.user
 pwd = conf.mqtt.password
@@ -69,6 +69,7 @@ end
 local function stop(m)
     m:on("offline", function(m) print("quitting now") end)
     m:close()
+    tmr.stop(3)
 end
 
 local function setup()
