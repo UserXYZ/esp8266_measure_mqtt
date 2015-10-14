@@ -4,7 +4,7 @@
 basicAuth = {}
 
 function basicAuth.authenticate(header)
-   conf = dofile("httpserver-conf.lc")
+   conf = dofile("config.lc")
    -- Parse basic auth http header.
    -- Returns the username if header contains valid credentials,
    -- nil otherwise.
@@ -15,7 +15,7 @@ function basicAuth.authenticate(header)
    --local credentials = dofile("httpserver-b64decode.lc")(credentials_enc)
    local credentials=require("base64dec").dec(credentials_enc)
    local user, pwd = credentials:match("^(.*):(.*)$")
-   
+
    if user ~= conf.auth.user or pwd ~= conf.auth.password then
       return nil
    end
