@@ -9,7 +9,7 @@ local compileAndRemoveIfNeeded = function(f)
    end
 end
 -- main()
-local serverFiles = {'message2.lua', 'myds3.lua', 'base64dec.lua', 'bmp085.lua', 'myNetTime.lua', 'httpserver.lua', 'httpserver-basicauth.lua', 'httpserver-conf.lua', 'httpserver-request.lua', 'httpserver-static.lua', 'httpserver-header.lua', 'httpserver-error.lua'}
+local serverFiles = {'message2.lua', 'myds3.lua', 'base64dec.lua', 'bmp085.lua', 'myNetTime.lua', 'httpserver.lua', 'httpserver-basicauth.lua', 'config.lua', 'httpserver-request.lua', 'httpserver-static.lua', 'httpserver-header.lua', 'httpserver-error.lua'}
 for i, f in ipairs(serverFiles) do
     compileAndRemoveIfNeeded(f)
 end
@@ -18,7 +18,7 @@ compileAndRemoveIfNeeded = nil
 serverFiles = nil
 collectgarbage()
 -- start configuration
-conf = dofile("httpserver-conf.lc")
+conf = dofile("config.lc")
 local wifiConfig = {}
 wifiConfig.mode = wifi.STATION
 wifiConfig.stationPointConfig = {}
@@ -56,46 +56,66 @@ tmr.alarm(1, 5000, 1, function()
       collectgarbage()
    end
 end)
+--[[ timer used
+6 - for DS18B20 measurement
+5 - for DHT22 measurement
+4 - for BPM180 measurement
+3 - for MQTT data sending/receiving
+2 - free
+1 - free
+0 - free
 --[[
--- start timer measuring and putting results into global table gtab
-local dstemp=require("myds3")
-gtab=nil
-gtab={}
-local delay=conf.misc.wait*1000
-if delay < 2000 or delay > 3600000 then
-		print("Measuring timeout out of bounds, defaulting to 5s")
-		delay=5000
-else
-		print("Starting measurement every "..conf.misc.wait.." second(s)")
+-- start DS18B20 measuring and putting results into its global table
+if conf.sens_ds then
+	local dstemp=require("myds3")
+	ds_tab={}
+	local ds_delay=conf.sens.ds_wait*1000
+	if ds_delay < 2000 or ds_delay > 3600000 then
+		print("DS18B20 measuring timeout out of bounds, defaulting to 60s")
+		ds_delay=60000
+	else
+		print("Starting measurement with DS18B20  every "..conf.sens.ds_wait.." second(s)")
+	end
+
+	tmr.wdclr()
+	tmr.alarm(6, ds_delay,1,function()
+		dstemp.readT(conf.misc.ds_pin,function(r)
+    		for k,v in pairs(r) do
+        		ds_tab[k]=v
+			end
+		end)
+	end)
+end
+-- start DHT22 measuring and putting results into its global table
+if conf.sens_dht then
+
+end
+-- start BPM180 measuring and putting results into its global table
+if conf.sens_bpm then
+
 end
 
-tmr.wdclr()
-tmr.alarm(6, delay,1,function()
-		dstemp.readT(conf.misc.pin,function(r)
-    		for k,v in pairs(r) do
-        		gtab[k]=v
-        end
-    end)
-end)
 -- start sending mqtt data
 local mq=require("message2")
 local mdelay=conf.mqtt.delay*1000
 if mdelay < 5000 or mdelay > 3600000 then
-	print("MQTT delay out of bounds, defaulting to 10s")
-	mdelay=10000
+	print("MQTT delay out of bounds, defaulting to 60s")
+	mdelay=60000
 else
 	print("Starting sending MQTT data every "..conf.mqtt.delay.." second(s)")
 end
--- start sending with default topic for now
 local client=mq.setup()
+-- start sending mqtt data for DS18B20 sensors
 tmr.wdclr()
-tmr.alarm(5,mdelay,1,function() for a,b in pairs(gtab) do
-	local val=string.format("%.3f",b)
-	f.msgSend(client, conf.mqtt.topic, cjson.encode({temp=val}))
+tmr.alarm(3,mdelay,1,function() for a,b in pairs(ds_tab) do
+	local val=string.format("%.2f",b)
+	f.msgSend(client, conf.mqtt.topic.."/ds", cjson.encode({sensor=a, temp=val}))
 	end
 end)
+-- start sending mqtt data for DHT22 sensors
+-- start sending mqtt data for BPM180 sensors
 
-collectgarbage()
+collectgarbage("collect")
 ]]--
 -- start measuring from DHT22
 -- start sending mqtt data
