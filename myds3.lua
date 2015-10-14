@@ -1,6 +1,6 @@
 local M
 -- code begin
-local conf = dofile("httpserver-conf.lc")
+local conf = dofile("config.lc")
 
 local format_addr = function(a)
     return ("%02x-%02x%02x%02x%02x%02x%02x"):format(
