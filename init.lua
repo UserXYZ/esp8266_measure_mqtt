@@ -74,7 +74,7 @@ if conf.sens_ds then
 		print("DS18B20 measuring timeout out of bounds, defaulting to 60s")
 		ds_delay=60000
 	else
-		print("Starting measurement with DS18B20  every "..conf.sens.ds_wait.." second(s)")
+		print("Starting measurement with DS18B20 every "..conf.sens.ds_wait.." second(s)")
 	end
 
 	tmr.wdclr()
@@ -90,9 +90,48 @@ end
 if conf.sens_dht then
 
 end
--- start BPM180 measuring and putting results into its global table
-if conf.sens_bpm then
+-- start DHT22 measuring and putting results into its global table
+if conf.sens_dht then
+	dht_tab={}
+	local dht_delay=conf.sens.dht_wait*1000
+	if dht_delay < 2000 or dht_delay > 3600000 then
+		print("DHT22 measuring timeout out of bounds, defaulting to 60s")
+		dht_delay=60000
+	else
+		print("Starting measurement with DHT22 every "..conf.sens.dht_wait.." second(s)")
+	end
 
+	tmr.wdclr()
+	tmr.alarm(5,dht_delay,1,function()
+		local status,temp,humi,temp_decimal,humi_decimal = dht.read(conf.sens.dht_pin)
+		if( status == dht.OK ) then
+			print("DHT Temperature:"..temp.."; ".."Humidity:"..humi,"")
+		elseif( status == dht.ERROR_CHECKSUM ) then
+			print( "DHT Checksum error." );
+		elseif( status == dht.ERROR_TIMEOUT ) then
+			print( "DHT Time out." );
+		end
+	end)
+
+end
+-- start BMP180 measuring and putting results into its global table
+if conf.sens_bmp then
+	bmp_tab={}
+	local bmp_delay=conf.sens.bmp_wait*1000
+	if bmp_delay < 2000 or bmp_delay > 3600000 then
+		print("BMP180 measuring timeout out of bounds, defaulting to 60s")
+		bmp_delay=60000
+	else
+		print("Starting measurement with BMP180 every "..conf.sens.bmp_wait.." second(s)")
+	end
+	bmp085.init(conf.sens.bmp_sda,conf.sens.bmp_scl)
+
+	tmr.wdclr()
+	tmr.alarm(4,bmp_delay,1,function()
+		local t=string.format("%.2f",bmp085.temperature()/10)
+		local p=string.format("%.2f",bmp085.pressure(3)/100)
+		local al=string.format("%.2f",(p-101325)*843/10000)
+		bmp_tab = {t,p,al}
 end
 
 -- start sending mqtt data
@@ -105,17 +144,18 @@ else
 	print("Starting sending MQTT data every "..conf.mqtt.delay.." second(s)")
 end
 local client=mq.setup()
--- start sending mqtt data for DS18B20 sensors
+-- start sending mqtt data for all sensors
 tmr.wdclr()
-tmr.alarm(3,mdelay,1,function() for a,b in pairs(ds_tab) do
-	local val=string.format("%.2f",b)
-	f.msgSend(client, conf.mqtt.topic.."/ds", cjson.encode({sensor=a, temp=val}))
+tmr.alarm(3,mdelay,1,function()
+	for a,b in pairs(ds_tab) do
+		local val=string.format("%.2f",b)
+		f.msgSend(client, conf.mqtt.topic.."/sensors/ds", cjson.encode({sensor=a, temp=val}))
+	end
+	for i=1,#bmp_tab do
+		f.msgSend(client, conf.mqtt.topic.."/sensors/bmp180",cjson.encode({temp=bmp_tab[i], pressure=bmp_tab[i+1], alt=bmp_tab[i+2]}))
+		i=i+3
 	end
 end)
--- start sending mqtt data for DHT22 sensors
--- start sending mqtt data for BPM180 sensors
 
 collectgarbage("collect")
 ]]--
--- start measuring from DHT22
--- start sending mqtt data
