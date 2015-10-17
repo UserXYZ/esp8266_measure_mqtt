@@ -27,7 +27,7 @@ sens.dht_enable = true
 sens.dht_pin = 4 -- pin on which the sensor is connected
 sens.dht_wait = 5 -- measuring rate in seconds, decimal value allowed
 -- BMP180 temperature and pressure sensor
-sens.bpm_enable = true
+sens.bmp_enable = true
 sens.bmp_sda = 5 -- I2C sda pin
 sens.bmp_scl = 6 -- I2C scl pin
 sens.dht_wait = 5 -- measuring rate in seconds, decimal value allowed
