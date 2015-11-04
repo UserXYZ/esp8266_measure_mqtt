@@ -27,13 +27,14 @@ sens.dht_enable = true
 sens.dht_pin = 4 -- pin on which the sensor is connected
 sens.dht_wait = 60 -- measuring rate in seconds, decimal value allowed
 -- BMP180 temperature and pressure sensor
-sens.bmp_enable = true
+sens.bmp_enable = false
 sens.bmp_sda = 5 -- I2C sda pin
 sens.bmp_scl = 6 -- I2C scl pin
-sens.dht_wait = 60 -- measuring rate in seconds, decimal value allowed
+sens.bmp_wait = 60 -- measuring rate in seconds, decimal value allowed
 conf.sens = sens
 -- mqtt settings
 local mqtt = {}
+mqtt.use = false -- use mqtt or other method
 mqtt.clientid = "NOC"
 mqtt.secure = true
 mqtt.user = "guest"
@@ -45,5 +46,13 @@ mqtt.topic = "/Confuzed/work" -- post topic
 mqtt.rtopic = "/Confuzed/work/todo" -- receive topic
 mqtt.delay = 60
 conf.mqtt = mqtt
+-- emoncms settings
+local emon = {}
+emon.use = false -- use emoncms or other method
+emon.node = 1 -- node id
+emon.server = "www.confuzed.in.rs"
+emon.path = "/emoncms9/input/post.json"
+emon.apikey = "81ec4aa2e02963e5c1c770ca1c204b83"
+conf.emon = emon
 -- end
 return conf
