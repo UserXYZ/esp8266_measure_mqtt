@@ -1,6 +1,6 @@
 local M
 -- code begin
-local conf = dofile("config.lc")
+local conf = require("config")
 
 local format_addr = function(a)
     return ("%02x-%02x%02x%02x%02x%02x%02x"):format(
