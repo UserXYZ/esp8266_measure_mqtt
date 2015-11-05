@@ -10,7 +10,7 @@ local dofile = dofile
 -- Limited to local environment
 setfenv(1,M)
 
-local conf = dofile("config.lua")
+local conf = require("config")
 clientid = conf.mqtt.clientid
 user = conf.mqtt.user
 pwd = conf.mqtt.password
