@@ -19,7 +19,7 @@ compileAndRemoveIfNeeded = nil
 serverFiles = nil
 collectgarbage("collect")
 -- start configuration
-conf = dofile("config.lua")
+conf = require("config")
 local wifiConfig = {}
 wifiConfig.mode = wifi.STATION
 wifiConfig.stationPointConfig = {}
