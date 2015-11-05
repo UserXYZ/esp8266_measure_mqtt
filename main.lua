@@ -8,7 +8,7 @@
 1 - free
 0 - free
 ]]--
-conf = dofile("config.lua")
+local conf = require("config")
 -- start DS18B20 measuring and putting results into its global table
 if conf.sens.ds_enable then
 	local dstemp=require("myds3")
@@ -71,56 +71,67 @@ if conf.sens.bmp_enable then
 	tmr.alarm(4,bmp_delay,1,function()
 		local t=string.format("%.2f",bmp085.temperature()/10)
 		local p=string.format("%.2f",bmp085.pressure(3)/100)
-		local al=string.format("%.2f",(p-101325)*843/10000)
+		local al=string.format("%.2f",(bmp085.pressure(3)-101325)*843/10000)
 		bmp_table = {t,p,al}
 	end)
 end
 -- connect to mqtt broker
 if conf.mqtt.use then
-	local mq=require("message2")
-	local mdelay=conf.mqtt.delay*1000
-	if mdelay < 60000 or mdelay > 3600000 then
-		print("MQTT delay out of bounds, defaulting to 60s")
-		mdelay=60000
-	else
-		print("Starting sending MQTT data every "..conf.mqtt.delay.." second(s)")
-	end
+	mq=require("message2")
 	local client=mq.setup()
 end
+if conf.emon.use then
+	emon=require("myemoncms")
+end
 -- start sending data for all sensors
+local mdelay=conf.misc.delay*1000
+if mdelay < 60000 or mdelay > 3600000 then
+	print("Data sending period out of bounds, defaulting to 60s")
+	mdelay=60000
+else
+	print("Starting sending data every "..conf.misc.delay.." second(s)")
+end
 tmr.wdclr()
 tmr.alarm(3,mdelay,1,function()
 	-- send ds18b20 data
-	for a,b in pairs(ds_table) do
-		local val=string.format("%.2f",b)
-		local json=cjson.encode({sensor=a, temp=val})
-		if conf.mqtt.use then -- send to mqtt broker
-			mq.msgSend(client, conf.mqtt.topic.."/sensors/ds18b20", json)
-		end
-		if conf.emon.use then -- send to emoncms
-			emon.send(json)
+	if conf.sens.ds_enable then
+		for a,b in pairs(ds_table) do
+			local val=string.format("%.2f",b)
+			local json=cjson.encode({sensor=a, ds_temp=val})
+			if conf.mqtt.use then -- send to mqtt broker
+				mq.msgSend(client, conf.mqtt.topic.."/sensors/ds18b20", json)
+			end
+			if conf.emon.use then -- send to emoncms
+				emon.send(json)
+			end
 		end
 	end
 	-- send dht22 data
-	for i=1,#dht_table do
-		local json=cjson.encode({temp=dht_table[i], humidity=dht_table[i+1]})
-		if conf.mqtt.use then -- send to mqtt broker
-			mq.msgSend(client, conf.mqtt.topic.."/sensors/dht22", json)
-		end
-		if conf.emon.use then -- send to emoncms
-			emon.send(json)
-		end
-		i=i+2
+	if conf.sens.dht_enable then
+		--for i=1,#dht_table do
+			--local json=cjson.encode({temp=dht_table[i], humidity=dht_table[i+1]})
+			local json=cjson.encode({dht_temp=dht_table[1], humidity=dht_table[2]})
+			if conf.mqtt.use then -- send to mqtt broker
+				mq.msgSend(client, conf.mqtt.topic.."/sensors/dht22", json)
+			end
+			if conf.emon.use then -- send to emoncms
+				emon.send(json)
+			end
+			--i=i+2
+		--end
 	end
 	-- send bmp180 data
-	for i=1,#bmp_table do
-		local json=cjson.encode({temp=bmp_table[i], pressure=bmp_table[i+1], alt=bmp_table[i+2]})
-		if conf.mqtt.use then -- send to mqtt broker
-			mq.msgSend(client, conf.mqtt.topic.."/sensors/bmp180", json)
-		end
-		if conf.emon.use then -- send to emoncms
-			emon.send(json)
-		end
-		i=i+3
+	if conf.sens.bmp_enable then
+		--for i=1,#bmp_table do
+			--local json=cjson.encode({temp=bmp_table[i], pressure=bmp_table[i+1], alt=bmp_table[i+2]})
+			local json=cjson.encode({bmp_temp=bmp_table[1], pressure=bmp_table[2], alt=bmp_table[3]})
+			if conf.mqtt.use then -- send to mqtt broker
+				mq.msgSend(client, conf.mqtt.topic.."/sensors/bmp180", json)
+			end
+			if conf.emon.use then -- send to emoncms
+				emon.send(json)
+			end
+			--i=i+3
+		--end
 	end
 end)
