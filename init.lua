@@ -9,8 +9,7 @@ local compileAndRemoveIfNeeded = function(f)
    end
 end
 -- main()
---local serverFiles = {'message2.lua', 'myds3.lua', 'base64dec.lua', 'bmp085.lua', 'myNetTime.lua', 'myemoncms.lua', 'httpserver.lua', 'httpserver-basicauth.lua', 'httpserver-request.lua', 'httpserver-static.lua', 'httpserver-header.lua', 'httpserver-error.lua'}
-local serverFiles = {'main.lua','message2.lua', 'myds3.lua', 'base64dec.lua', 'bmp085.lua', 'myNetTime.lua', 'myemoncms.lua'}
+local serverFiles = {'telnet.lua','main.lua','message2.lua', 'myds3.lua', 'mybmp085.lua', 'myNetTime.lua', 'myNtpTime.lua', 'myemoncms.lua'}
 for i, f in ipairs(serverFiles) do
     compileAndRemoveIfNeeded(f)
 end
@@ -47,6 +46,8 @@ tmr.alarm(1, 5000, 1, function()
          print('Got IP: ',ip)
          -- Uncomment to automatically start the server in port 80
          --dofile("httpserver.lc")(8008)
+            dofile("telnet.lc")
+            dofile("main.lc")
       end
       tmr.stop(1)
       joinCounter = nil
@@ -54,7 +55,5 @@ tmr.alarm(1, 5000, 1, function()
       collectgarbage("collect")
    end
 end)
-
-dofile("main.lc")
 
 collectgarbage("collect")
