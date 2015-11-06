@@ -1,7 +1,7 @@
 -- emoncms library - writes data to emoncms
 local M
 
-local conf = require("config")
+conf = require("config")
 
 local function send(data)
 	local sk=net.createConnection(net.TCP, 0)
@@ -11,7 +11,7 @@ local function send(data)
         "\r\nUser-Agent: esp8266\r\nAccept: */*\r\n\r\n"
 
     if conf.misc.debug then print(uri) end
---print(uri)
+print(uri)
 	sk:on("receive", function(sk, c)
 		print("Got "..c)
 	end)
@@ -19,6 +19,8 @@ local function send(data)
         if conf.misc.debug then print("Sent data") end
         print("#")
         sk:close()
+        sk=nil
+        collectgarbage("collect")
     end)
     sk:on("connection", function(sk)
         if conf.misc.debug then print("Connected") end
