@@ -16,6 +16,8 @@ conf.wlan = wlan
 local misc = {}
 misc.debug = false
 misc.delay = 60 -- data sending period
+misc.ntpsleep = 600 -- ntp sync period
+misc.tz = 1 -- time zone
 conf.misc = misc
 -- sensors
 local sens = {}
