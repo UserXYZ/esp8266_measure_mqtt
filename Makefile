@@ -12,7 +12,7 @@ SPEED=9600
 ######################################################################
 HTTP_FILES := $(wildcard http/*)
 LUA_FILES := message2.lua myds3.lua myemoncms.lua mybmp085.lua myNetTime.lua myNtpTime.lua \
-init.lua config.lua main.lua
+init.lua config.lua main.lua main2.lua dns.lua telnet.lua time.lua
 #base64dec.lua httpserver.lua httpserver-request.lua httpserver-basicauth.lua \
 #httpserver-static.lua httpserver-header.lua httpserver-error.lua
 
