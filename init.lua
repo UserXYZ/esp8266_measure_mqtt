@@ -9,7 +9,7 @@ local compileAndRemoveIfNeeded = function(f)
    end
 end
 -- main()
-local serverFiles = {'telnet.lua','main.lua','message2.lua', 'myds3.lua', 'mybmp085.lua', 'myNetTime.lua', 'myNtpTime.lua', 'myemoncms.lua'}
+local serverFiles = {'time.lua', 'dns.lua', 'telnet.lua','main.lua','main2.lua','message2.lua', 'myds3.lua', 'mybmp085.lua', 'myNetTime.lua', 'myNtpTime.lua', 'myemoncms.lua'}
 for i, f in ipairs(serverFiles) do
     compileAndRemoveIfNeeded(f)
 end
@@ -18,14 +18,14 @@ compileAndRemoveIfNeeded = nil
 serverFiles = nil
 collectgarbage("collect")
 -- start configuration
-conf = require("config")
+local conf = require("config")
 local wifiConfig = {}
 wifiConfig.mode = wifi.STATION
 wifiConfig.stationPointConfig = {}
 
 wifi.setmode(wifiConfig.mode)
-print('set (mode='..wifi.getmode()..')')
-print('MAC: ',wifi.sta.getmac())
+--print('set (mode='..wifi.getmode()..')')
+--print('MAC: ',wifi.sta.getmac())
 print('heap: ',node.heap())
 
 wifi.sta.config(conf.wlan.ssid, conf.wlan.pwd)
@@ -46,8 +46,10 @@ tmr.alarm(1, 5000, 1, function()
          print('Got IP: ',ip)
          -- Uncomment to automatically start the server in port 80
          --dofile("httpserver.lc")(8008)
+			--dofile("time.lc")
             dofile("telnet.lc")
-            dofile("main.lc")
+            --dofile("main.lc")
+            dofile("main2.lc")
       end
       tmr.stop(1)
       joinCounter = nil
@@ -55,5 +57,3 @@ tmr.alarm(1, 5000, 1, function()
       collectgarbage("collect")
    end
 end)
-
-collectgarbage("collect")
