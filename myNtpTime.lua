@@ -1,37 +1,34 @@
 local M
- 
-local function resolveIP(host,cb)
-    local conn=net.createConnection(net.TCP, 0)
-    conn:dns(tostring(host),function(conn,ip)
-        if ip then
-            cb(ip)
-        else
-            print("DNS query failed for "..host)
-            cb(nil)
-        end
-    end)
-    conn = nil
-    collectgarbage("collect")
-end
 
 local function getTime(tz)
     local t, h, m, s
-    t = rtctime.get() + tz*3600
-    h = t % 86400 / 3600
-    m = t % 3600 / 60
-    s = t % 60
-    return string.format("%02d:%02d:%02d", h, m, s)
+    t = rtctime.get()
+    if t ~= 0 then
+        t = t + tz*3600
+        h = t % 86400 / 3600
+        m = t % 3600 / 60
+        s = t % 60
+        return string.format("%02d:%02d:%02d", h, m, s)
+    else
+        return nil
+    end
 end
 
-local function sync(ntpsrv)
+
+
+local function sync(ntpsrv,tz,cb)
     sntp.sync(ntpsrv,
-    function() end,
+    function()
+        if tz then
+            cb(getTime(tz))
+        end
+    end,
     function()
         print('NTP sync failed!')
-    end
-)
+        cb(nil)
+    end)
 end
 
 -- export functions
-M = { resolveIP = resolveIP, getTime = getTime, sync = sync }
+M = { getTime = getTime, sync = sync }
 return M
