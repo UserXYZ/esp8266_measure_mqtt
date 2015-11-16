@@ -43,6 +43,7 @@ if conf.sens.dht_enable then
 
 	tmr.wdclr()
 	tmr.alarm(5,dht_delay,1,function()
+print("starting dht22 measuring")
 		local status,temp,humi,temp_decimal,humi_decimal = dht.read(conf.sens.dht_pin)
 		if( status == dht.OK ) then
 			--print("DHT Temperature:"..temp.."; ".."Humidity:"..humi,"")
@@ -65,10 +66,11 @@ if conf.sens.bmp_enable then
 	else
 		print("Starting measurement with BMP180 every "..conf.sens.bmp_wait.." second(s)")
 	end
-	bmp085.init(conf.sens.bmp_sda,conf.sens.bmp_scl)
 
 	tmr.wdclr()
 	tmr.alarm(4,bmp_delay,1,function()
+print("starting bmp180 measuring")
+        bmp085.init(conf.sens.bmp_sda,conf.sens.bmp_scl)
 		local t=string.format("%.2f",bmp085.temperature()/10)
 		local p=string.format("%.2f",bmp085.pressure(3)/100)
 		local al=string.format("%.2f",(bmp085.pressure(3)-101325)*843/10000)
@@ -91,47 +93,77 @@ if mdelay < 60000 or mdelay > 3600000 then
 else
 	print("Starting sending data every "..conf.misc.delay.." second(s)")
 end
+-- get time
+local ntp=require("myNtpTime")
+local d=require("dns")
+--get start time
+d.resolveIP("pool.ntp.org",function(r)
+    if r then
+        ntp.sync(r,conf.misc.tz,function(tm)
+            if tm then
+                print("start time is:",tm)
+            end
+        end)
+    end
+end)
+-- start ntp polling
+tmr.wdclr()
+tmr.alarm(2,conf.misc.ntpsleep*1000,1,function()
+    d.resolveIP("pool.ntp.org",function(r)
+        if r then
+            ntp.sync(r,conf.misc.tz,function(tm)
+                if tm then
+                    --print(cjson.encode({time=tm}))
+                    print("NTP time sync at",tm)
+                end
+            end)
+        end
+    end)
+end)
+-- start work
 tmr.wdclr()
 tmr.alarm(3,mdelay,1,function()
 	-- send ds18b20 data
 	if conf.sens.ds_enable then
 		for a,b in pairs(ds_table) do
+			local json=nil
 			local val=string.format("%.2f",b)
-			local json=cjson.encode({sensor=a, ds_temp=val})
 			if conf.mqtt.use then -- send to mqtt broker
+				local t=ntp.getTime(conf.misc.tz)
+				json=cjson.encode({time=t, sensor=a, ds_temp=val})
 				mq.msgSend(client, conf.mqtt.topic.."/sensors/ds18b20", json)
 			end
 			if conf.emon.use then -- send to emoncms
+				json=cjson.encode({sensor=a, ds_temp=val})
 				emon.send(json)
 			end
 		end
 	end
 	-- send dht22 data
 	if conf.sens.dht_enable then
-		--for i=1,#dht_table do
-			--local json=cjson.encode({temp=dht_table[i], humidity=dht_table[i+1]})
-			local json=cjson.encode({dht_temp=dht_table[1], humidity=dht_table[2]})
+			local json=nil
 			if conf.mqtt.use then -- send to mqtt broker
+				local t=ntp.getTime(conf.misc.tz)
+				json=cjson.encode({time=t, dht_temp=dht_table[1], humidity=dht_table[2]})
 				mq.msgSend(client, conf.mqtt.topic.."/sensors/dht22", json)
 			end
 			if conf.emon.use then -- send to emoncms
+				json=cjson.encode({dht_temp=dht_table[1], humidity=dht_table[2]})
 				emon.send(json)
 			end
-			--i=i+2
-		--end
 	end
 	-- send bmp180 data
 	if conf.sens.bmp_enable then
-		--for i=1,#bmp_table do
-			--local json=cjson.encode({temp=bmp_table[i], pressure=bmp_table[i+1], alt=bmp_table[i+2]})
-			local json=cjson.encode({bmp_temp=bmp_table[1], pressure=bmp_table[2], alt=bmp_table[3]})
+			local json=nil
+			local t=ntp.getTime(conf.misc.tz)
 			if conf.mqtt.use then -- send to mqtt broker
+				json=cjson.encode({time=t, bmp_temp=bmp_table[1], pressure=bmp_table[2], alt=bmp_table[3]})
 				mq.msgSend(client, conf.mqtt.topic.."/sensors/bmp180", json)
 			end
 			if conf.emon.use then -- send to emoncms
+				json=cjson.encode({bmp_temp=bmp_table[1], pressure=bmp_table[2], alt=bmp_table[3]})
 				emon.send(json)
 			end
-			--i=i+3
-		--end
 	end
+	collectgarbage("collect")
 end)
