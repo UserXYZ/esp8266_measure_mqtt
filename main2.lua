@@ -4,15 +4,15 @@
 5 - for NTP
 ]]--
 local conf = require("config")
--- get time
+--get start time
 local ntp=require("myNtpTime")
 local d=require("dns")
---get start time
 d.resolveIP("pool.ntp.org",function(r)
     if r then
         ntp.sync(r,conf.misc.tz,function(tm)
             if tm then
                 print("Start time is:",tm)
+                collectgarbage()
             end
         end)
     end
@@ -23,11 +23,22 @@ tmr.alarm(5,conf.misc.ntpsleep*1000,1,function()
     d.resolveIP("pool.ntp.org",function(r)
         if r then
             ntp.sync(r,conf.misc.tz,function(tm)
-                if tm then print("NTP time sync at:",tm) end
+                if tm then
+                    print("NTP time sync at:",tm)
+                    collectgarbage()
+                end
             end)
         end
     end)
 end)
+-- connect to mqtt broker
+if conf.mqtt.use then
+	mq=require("message3")
+	client=mq.setup()
+end
+if conf.emon.use then
+	emon=require("myemoncms")
+end
 -- start measurement and data sending
 local delay=conf.misc.delay*1000
 if delay < 60000 or delay > 3600000 then
@@ -70,19 +81,14 @@ if conf.sens.bmp_enable then
 	local al=string.format("%.2f",(bmp085.pressure(3)-101325)*843/10000)
 	bmp_table = {t,p,al}
 end
--- connect to mqtt broker
-if conf.mqtt.use then
-	mq=require("message2")
-	local client=mq.setup()
-end
-if conf.emon.use then
-	emon=require("myemoncms")
-end
 -- start sending data for all sensors
 local t=ntp.getTime(conf.misc.tz)
 print("Sending data at:",t)
 t=nil
-collectgarbage("collect")
+collectgarbage()
+
+--print("main2-1:",node.heap())
+
 -- start work
 	-- send ds18b20 data
 	if conf.sens.ds_enable then
@@ -99,6 +105,9 @@ collectgarbage("collect")
 				emon.send(json)
 			end
 		end
+		ds_table=nil
+		dstemp=nil
+		t=nil
 	end
 	-- send dht22 data
 	if conf.sens.dht_enable then
@@ -112,6 +121,8 @@ collectgarbage("collect")
 				json=cjson.encode({dht_temp=dht_table[1], humidity=dht_table[2]})
 				emon.send(json)
 			end
+			dht_table=nil
+			t=nil
 	end
 	-- send bmp180 data
 	if conf.sens.bmp_enable then
@@ -125,13 +136,14 @@ collectgarbage("collect")
 				json=cjson.encode({bmp_temp=bmp_table[1], pressure=bmp_table[2], alt=bmp_table[3]})
 				emon.send(json)
 			end
+			bmp_table=nil
+			t=nil
 	end
 -- clean all temporary data structures
-	ds_table=nil
-	dht_table=nil
-	bmp_table=nil
-	dstemp=nil
-	mq=nil
-	emon=nil
-	collectgarbage("collect")
+	json=nil
+	collectgarbage()
+    collectgarbage()
+
+--print("main2-2:",node.heap())
+
 end) -- end timer
