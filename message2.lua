@@ -1,22 +1,6 @@
-local modname = ...
 local M = {}
-_G[modname] = M
-
-local tmr = tmr
-local mqtt = mqtt
-local wifi = wifi
-local print = print
-local dofile = dofile
--- Limited to local environment
-setfenv(1,M)
-
 local conf = require("config")
-clientid = conf.mqtt.clientid
-user = conf.mqtt.user
-pwd = conf.mqtt.password
-broker = conf.mqtt.broker
-port = conf.mqtt.port
-secure = conf.mqtt.secure
+local secure = conf.mqtt.secure
 if conf.mqtt.secure then
     secure = 1
 else
@@ -66,23 +50,20 @@ local function msgRecv(rtopic, data)
     print(rtopic..":"..data)
 end
 
-local function stop(m)
-    m:on("offline", function(m) print("quitting now") end)
-    m:close()
-    tmr.stop(3)
-end
-
 local function setup()
     if conf.misc.debug then print("setup start") end
-    m = mqtt.Client(clientid, 120, user, pwd)
-
-    m:lwt("/lwt", clientid.." died", 0, 0)
+    m = mqtt.Client(conf.mqtt.clientid, 120, conf.mqtt.user, conf.mqtt.password)
+    m:lwt("/lwt", conf.mqtt.clientid.." died", 0, 0)
 -- if we go offline
     m:on("offline", function(m)
-        print ("reconnecting to "..broker..":"..port)
+        print ("reconnecting to "..conf.mqtt.broker..":"..conf.mqtt.port)
         tmr.wdclr()
-        tmr.alarm(3, 5000, 1, function()
-            m:connect(broker, port, secure, function(m) tmr.stop(3) end)
+        tmr.alarm(1, 5000, 1, function()
+			if wifi.sta.status() == 5 then
+				m:connect(conf.mqtt.broker, conf.mqtt.port, secure, function(m)
+					tmr.stop(1)
+				end)
+			end
         end)
     end)
 -- handle received message
@@ -96,13 +77,13 @@ local function setup()
     end)
 -- connect to broker and subscribe
     tmr.wdclr()
-    tmr.alarm(2, 1000, 1, function()
+    tmr.alarm(1, 1000, 1, function()
         if wifi.sta.status() == 5 then
-            tmr.stop(2)
-            m:connect(broker, 1883, 0, function(m)
-                print("connected to "..broker..":"..port)
+            tmr.stop(1)
+            m:connect(conf.mqtt.broker, conf.mqtt.port, 0, function(m)
+                print("connected to "..conf.mqtt.broker..":"..conf.mqtt.port)
                 m:subscribe(conf.mqtt.rtopic, 0, function(m)
-					msgSend(m, conf.mqtt.rtopic, clientid.." waiting for command")
+					msgSend(m, conf.mqtt.rtopic, conf.mqtt.clientid.." waiting for command")
                 end)
             end)
         end
@@ -114,7 +95,6 @@ end
   -- expose
   M = {
     setup = setup,
-    stop = stop,
     msgSend = msgSend,
     msgSendJson = msgSendJson
   }
