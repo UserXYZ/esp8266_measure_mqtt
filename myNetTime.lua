@@ -1,9 +1,4 @@
---[[
-local moduleName = ... 
 local M = {}
-_G[moduleName] = M
-]]--
-local M
 
 local function getTime(tz,host,cb)
     local time = {}
@@ -51,5 +46,4 @@ local function getTime(tz,host,cb)
 end
 
 M = { getTime = getTime }
-
 return M
