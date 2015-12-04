@@ -11,10 +11,10 @@ SPEED=9600
 # End of user config
 ######################################################################
 HTTP_FILES := $(wildcard http/*)
-LUA_FILES := message2.lua myds3.lua myemoncms.lua mybmp085.lua myNetTime.lua myNtpTime.lua \
-init.lua config.lua main.lua main2.lua dns.lua telnet.lua time.lua
+LUA_FILES := message2.lua myds3.lua myemoncms.lua myNtpTime.lua \
+init.lua config.lua main2.lua dns.lua telnet.lua time.lua button.lua
 #base64dec.lua httpserver.lua httpserver-request.lua httpserver-basicauth.lua \
-#httpserver-static.lua httpserver-header.lua httpserver-error.lua
+#httpserver-static.lua httpserver-header.lua httpserver-error.lua main.lua mybmp085.lua myNetTime.lua
 
 # Print usage
 usage:
