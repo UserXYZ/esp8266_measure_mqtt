@@ -18,38 +18,41 @@ misc.debug = false
 misc.delay = 60 -- data sending period
 misc.ntpsleep = 600 -- ntp sync period
 misc.tz = 1 -- time zone
+misc.status = false
+misc.sw_pin = 1 -- pin for the switch
 conf.misc = misc
 -- sensors
 local sens = {}
 -- DS18B20 temperature measurement sensor
 sens.ds_enable = false
 sens.ds_pin = 4 -- pin on which the sensors are connected
-sens.ds_wait = 60 -- measuring rate in seconds, decimal value allowed
+sens.ds_wait = 60 -- measuring rate in seconds
 -- DHT22 temperature and humidity sensor
 sens.dht_enable = true
 sens.dht_pin = 4 -- pin on which the sensor is connected
-sens.dht_wait = 60 -- measuring rate in seconds, decimal value allowed
+sens.dht_wait = 60 -- measuring rate in seconds
 -- BMP180 temperature and pressure sensor
 sens.bmp_enable = true
 sens.bmp_sda = 5 -- I2C sda pin
 sens.bmp_scl = 6 -- I2C scl pin
-sens.bmp_wait = 60 -- measuring rate in seconds, decimal value allowed
+sens.bmp_wait = 60 -- measuring rate in seconds
 conf.sens = sens
 -- mqtt settings
 local mqtt = {}
-mqtt.use = false -- use mqtt or other method
+mqtt.use = true -- use mqtt or other method
 mqtt.clientid = "NOC"
-mqtt.secure = true
+mqtt.secure = false
 mqtt.user = "guest"
 mqtt.password = "guest"
-mqtt.broker = "mqtt.thingstud.io"
-mqtt.port = 9001
-mqtt.topic = "/Confuzed/work" -- post topic
-mqtt.rtopic = "/Confuzed/work/todo" -- receive topic
+--mqtt.broker = "mqtt.thingstud.io"
+mqtt.broker = "ubudev.yu.net"
+mqtt.port = 1883
+mqtt.topic = "/Confuzed/esp8266/work" -- post topic
+mqtt.rtopic = "/Confuzed/esp8266/work/todo" -- receive topic
 conf.mqtt = mqtt
 -- emoncms settings
 local emon = {}
-emon.use = true -- use emoncms or other method
+emon.use = false -- use emoncms or other method
 emon.node = 1 -- node id
 emon.server = "www.confuzed.in.rs"
 emon.path = "/emoncms9/input/post.json"
