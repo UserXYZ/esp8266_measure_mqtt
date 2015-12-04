@@ -1,4 +1,4 @@
-local M
+local M = {}
 
 local function getTime(tz)
     local t, h, m, s
