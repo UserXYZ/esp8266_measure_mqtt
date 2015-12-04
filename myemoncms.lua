@@ -1,9 +1,9 @@
 -- emoncms library - writes data to emoncms
-local M
-
+local M = {}
 local conf = require("config")
-
+        
 local function send(data)
+print("#1",node.heap())
 	local sk=net.createConnection(net.TCP, 0)
     local uri="GET "..conf.emon.path.."?node="..conf.emon.node.."&json="..data..
         "&apikey="..conf.emon.apikey..
@@ -12,21 +12,22 @@ local function send(data)
 
     if conf.misc.debug then print(uri) end
 --print(uri)
-print(node.heap())
-	sk:on("receive", function(sk, c)
-		print("Got "..c)
-	end)
+--print(node.heap())
     sk:on("sent", function(sk)
-        if conf.misc.debug then print("Sent data") end
-        print("#")
         sk:close()
+        if conf.misc.debug then print("Sent data") end
+        --print("#")
         sk=nil
-        collectgarbage("collect")
+        uri=nil
+        collectgarbage()
+print("#2",node.heap())
     end)
+
     sk:on("connection", function(sk)
         if conf.misc.debug then print("Connected") end
         sk:send(uri)
-    end )
+    end)
+
 	sk:connect(80,conf.emon.server)
 end
 
