@@ -5,18 +5,18 @@ local compileAndRemoveIfNeeded = function(f)
       print('Compiling:', f)
       node.compile(f)
       file.remove(f)
-      collectgarbage("collect")
+      collectgarbage()
    end
 end
 -- main()
-local serverFiles = {'time.lua', 'dns.lua', 'telnet.lua','main.lua','main2.lua','message2.lua', 'myds3.lua', 'mybmp085.lua', 'myNetTime.lua', 'myNtpTime.lua', 'myemoncms.lua'}
+local serverFiles = {'dns.lua', 'telnet.lua','main2.lua','message3.lua', 'myds3.lua', 'myNtpTime.lua', 'myemoncms.lua', 'button.lua'}
 for i, f in ipairs(serverFiles) do
     compileAndRemoveIfNeeded(f)
 end
 
 compileAndRemoveIfNeeded = nil
 serverFiles = nil
-collectgarbage("collect")
+collectgarbage()
 -- start configuration
 local conf = require("config")
 local wifiConfig = {}
@@ -24,13 +24,9 @@ wifiConfig.mode = wifi.STATION
 wifiConfig.stationPointConfig = {}
 
 wifi.setmode(wifiConfig.mode)
---print('set (mode='..wifi.getmode()..')')
---print('MAC: ',wifi.sta.getmac())
-print('heap: ',node.heap())
-
 wifi.sta.config(conf.wlan.ssid, conf.wlan.pwd)
 wifiConfig = nil
-collectgarbage("collect")
+collectgarbage()
 
 local joinCounter = 0
 local joinMaxAttempts = 20
@@ -44,16 +40,15 @@ tmr.alarm(1, 5000, 1, function()
          print('Failed to connect to WiFi Access Point.')
       else
          print('Got IP: ',ip)
-         -- Uncomment to automatically start the server in port 80
-         --dofile("httpserver.lc")(8008)
-			--dofile("time.lc")
-            dofile("telnet.lc")
-            --dofile("main.lc")
-            dofile("main2.lc")
+         print('heap: ',node.heap())
+         -- Uncomment to automatically start everything
+            --dofile("telnet.lc")
+            --dofile("main2.lc")
+            --dofile("button.lc")
       end
       tmr.stop(1)
       joinCounter = nil
       joinMaxAttempts = nil
-      collectgarbage("collect")
+      collectgarbage()
    end
 end)
