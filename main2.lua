@@ -65,7 +65,7 @@ if conf.sens.dht_enable then
 	print("Starting measurement with DHT22")
 	local status,temp,humi,temp_decimal,humi_decimal = dht.read(conf.sens.dht_pin)
 	if( status == dht.OK ) then
-		dht_table = {temp,humi}
+		dht_table = {string.format("%.2f",temp),string.format("%.2f",humi)}
 	elseif( status == dht.ERROR_CHECKSUM ) then
 		print( "DHT Checksum error." );
 	elseif( status == dht.ERROR_TIMEOUT ) then
