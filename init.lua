@@ -43,8 +43,8 @@ tmr.alarm(1, 5000, 1, function()
          print('heap: ',node.heap())
          -- Uncomment to automatically start everything
             --dofile("telnet.lc")
-            --dofile("main2.lc")
-            --dofile("button.lc")
+            dofile("main2.lc")
+            dofile("button.lc")
       end
       tmr.stop(1)
       joinCounter = nil
