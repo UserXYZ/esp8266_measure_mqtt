@@ -20,6 +20,8 @@ misc.ntpsleep = 600 -- ntp sync period
 misc.tz = 1 -- time zone
 misc.status = false
 misc.sw_pin = 1 -- pin for the switch
+misc.use_display = true -- use display or not
+-- display is defined and configured in the appropriate module file
 conf.misc = misc
 -- sensors
 local sens = {}
