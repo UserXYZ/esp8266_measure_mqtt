@@ -9,7 +9,7 @@ local compileAndRemoveIfNeeded = function(f)
    end
 end
 -- main()
-local serverFiles = {'dns.lua', 'telnet.lua','main2.lua','message3.lua', 'myds3.lua', 'myNtpTime.lua', 'myemoncms.lua', 'button.lua'}
+local serverFiles = {'dns.lua', 'telnet.lua','main3.lua','message3.lua', 'myds3.lua', 'myNtpTime.lua', 'myemoncms.lua', 'button.lua'}
 for i, f in ipairs(serverFiles) do
     compileAndRemoveIfNeeded(f)
 end
@@ -43,7 +43,7 @@ tmr.alarm(1, 5000, 1, function()
          print('heap: ',node.heap())
          -- Uncomment to automatically start everything
             --dofile("telnet.lc")
-            dofile("main2.lc")
+            dofile("main3.lc")
             dofile("button.lc")
       end
       tmr.stop(1)
