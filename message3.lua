@@ -1,6 +1,6 @@
 local M = {}
 local conf = require("config")
-local secure = conf.mqtt.secure
+local secure = 0
 if conf.mqtt.secure then
     secure = 1
 else
