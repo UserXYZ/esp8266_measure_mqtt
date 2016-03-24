@@ -42,4 +42,12 @@ luac.out
 *.x86_64
 *.hex
 
+### Test, stari kod, http_server
+test/*
+old_code/*
+http_server/*
+
 >>>>>>> esp8266_measure_mqtt@GitHub/master
+/test/
+/old_code/
+/http_server/
