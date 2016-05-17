@@ -6,28 +6,34 @@
 local conf = require("config")
 -- get DST
 local tz=nil
+local cnt=0
 tmr.wdclr()
 tmr.alarm(4,5000,1,function()
-    local dst=require("getDST")
+	local dst=require("getDST")
     print("Trying to get DST for "..conf.misc.zone)
 	dst.getDST(function (p)
---        while not p do
+			cnt=cnt+1
+			if cnt == 5 then
+				tmr.stop(4) 
+				print("Error getting DST, using default value of 0 (same as UTC)...")
+				cnt=nil
+				tz=0
+			end
 		    if type(p) == "string" then
 			    print ("Error: "..p)
 		    elseif type(p) == "number" then
---print(p)
 			    tz=p
                 print("Got DST: "..tz.."h")
+                cnt=nil
                 tmr.stop(4)
 		    else
 			    print("Error getting DST, using default value of 0 (same as UTC)...")
 			    tz=0
 		    end
---	    end
     end)
-    dst=nil
-    package.loaded["getDST"] = nil
-    collectgarbage()
+	dst=nil
+	package.loaded["getDST"] = nil
+	collectgarbage()
 end)
 -- get start time
 local ntp=require("myNtpTime")
