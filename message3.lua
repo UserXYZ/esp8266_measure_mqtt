@@ -49,7 +49,7 @@ local function setup()
         tmr.wdclr()
         tmr.alarm(1, 5000, 1, function()
 			if wifi.sta.status() == 5 then
-				m:connect(conf.mqtt.broker, conf.mqtt.port, secure, function(m)	tmr.stop(1)	end)
+				m:connect(conf.mqtt.broker, conf.mqtt.port, secure, function(m)	tmr.stop(1) end)
 			end
         end)
     end)

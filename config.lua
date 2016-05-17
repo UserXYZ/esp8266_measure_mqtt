@@ -17,7 +17,6 @@ local misc = {}
 misc.debug = false
 misc.delay = 60 -- data sending period
 misc.ntpsleep = 600 -- ntp sync period
-misc.tz = 1 -- time zone difference
 misc.zone = "Europe/Belgrade" -- time zonename
 misc.timezonedb_key = "0ZDSLL4QJS5I" -- timezonedb.com API key
 misc.status = false

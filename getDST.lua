@@ -5,12 +5,12 @@ local M = {}
 local conf = require("config")
 
 local function getDST(cb)
+    if conf.misc.zone == "" then cb("No defined time zone in your config file!") end
+
     local offset=nil
     local host="api.timezonedb.com"
     local q="/?zone="..conf.misc.zone.."&format=json&key="..conf.misc.timezonedb_key
     local conn=net.createConnection(net.TCP, 0)
-
-    if not zone then cb(nil) end
 
     conn:on("connection",function(conn, payload)
 	    conn:send("GET "..q.." HTTP/1.1\r\n"..
@@ -32,11 +32,11 @@ local function getDST(cb)
                     offset=t["gmtOffset"]/3600
                 end
             end
+        end
         conn:close()
         conn=nil
         collectgarbage()
         cb(offset)
-        end
     end)
 
     conn:dns(tostring(host),function(conn,ip)
@@ -46,8 +46,7 @@ local function getDST(cb)
             conn:close()
             conn=nil
             collectgarbage()
-            print("DNS can't resolve DST server"..host)
-            cb(nil)
+            cb("DNS can't resolve DST server"..host)
         end
     end)
 end

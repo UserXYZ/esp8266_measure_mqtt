@@ -1,15 +1,40 @@
--- main file V2
+-- main file V3
 --[[ timers used
 6 - for measurement
 5 - for NTP
 ]]--
 local conf = require("config")
---get start time
+-- get DST
+local tz=nil
+tmr.wdclr()
+tmr.alarm(4,5000,1,function()
+    local dst=require("getDST")
+    print("Trying to get DST for "..conf.misc.zone)
+	dst.getDST(function (p)
+--        while not p do
+		    if type(p) == "string" then
+			    print ("Error: "..p)
+		    elseif type(p) == "number" then
+--print(p)
+			    tz=p
+                print("Got DST: "..tz.."h")
+                tmr.stop(4)
+		    else
+			    print("Error getting DST, using default value of 0 (same as UTC)...")
+			    tz=0
+		    end
+--	    end
+    end)
+    dst=nil
+    package.loaded["getDST"] = nil
+    collectgarbage()
+end)
+-- get start time
 local ntp=require("myNtpTime")
 local d=require("dns")
 d.resolveIP("pool.ntp.org",function(r)
     if r then
-        ntp.sync(r,conf.misc.tz,function(tm)
+        ntp.sync(r,tz,function(tm)
             if tm then print("Start time is:",tm) end
         end)
     end
@@ -21,16 +46,16 @@ collectgarbage()
 tmr.wdclr()
 tmr.alarm(5,conf.misc.ntpsleep*1000,1,function()
 	local d=require("dns")
-    d.resolveIP("pool.ntp.org",function(r)
+	d.resolveIP("pool.ntp.org",function(r)
         if r then
-            ntp.sync(r,conf.misc.tz,function(tm)
+            ntp.sync(r,tz,function(tm)
                 if tm then print("NTP time sync at:",tm) end
             end)
         end
     end)
     d=nil
     package.loaded["dns"] = nil
-	collectgarbage()
+    collectgarbage()
 end)
 -- connect to mqtt broker
 if conf.mqtt.use then
@@ -86,7 +111,7 @@ if conf.sens.bmp_enable then
 	bmp_table = {t,p,al}
 end
 -- start sending data for all sensors
-print("Sending data at:",ntp.getTime(conf.misc.tz))
+print("Sending data at:",ntp.getTime(tz))
 collectgarbage()
 --print("main2-1:",node.heap())
 -- start sending data
@@ -96,7 +121,7 @@ collectgarbage()
 			local json=nil
 			local val=string.format("%.2f",b)
 			if conf.mqtt.use then -- send to mqtt broker
-				local t=ntp.getTime(conf.misc.tz)
+				local t=ntp.getTime(tz)
 				json=cjson.encode({time=t, sensor=a, ds_temp=val})
 				mq.msgSend(client, conf.mqtt.topic.."/sensors/ds18b20", json)
 			end
@@ -111,7 +136,7 @@ collectgarbage()
 	if conf.sens.dht_enable then
 			local json=nil
 			if conf.mqtt.use then -- send to mqtt broker
-				local t=ntp.getTime(conf.misc.tz)
+				local t=ntp.getTime(tz)
 				json=cjson.encode({time=t, dht_temp=dht_table[1], humidity=dht_table[2]})
 				mq.msgSend(client, conf.mqtt.topic.."/sensors/dht22", json)
 			end
@@ -124,7 +149,7 @@ collectgarbage()
 	-- send bmp180 data
 	if conf.sens.bmp_enable then
 			local json=nil
-			local t=ntp.getTime(conf.misc.tz)
+			local t=ntp.getTime(tz)
 			if conf.mqtt.use then -- send to mqtt broker
 				json=cjson.encode({time=t, bmp_temp=bmp_table[1], pressure=bmp_table[2], alt=bmp_table[3]})
 				mq.msgSend(client, conf.mqtt.topic.."/sensors/bmp180", json)
