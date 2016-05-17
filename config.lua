@@ -17,10 +17,12 @@ local misc = {}
 misc.debug = false
 misc.delay = 60 -- data sending period
 misc.ntpsleep = 600 -- ntp sync period
-misc.tz = 1 -- time zone
+misc.tz = 1 -- time zone difference
+misc.zone = "Europe/Belgrade" -- time zonename
+misc.timezonedb_key = "0ZDSLL4QJS5I" -- timezonedb.com API key
 misc.status = false
 misc.sw_pin = 1 -- pin for the switch
-misc.use_display = true -- use display or not
+misc.use_display = false -- use display or not
 -- display is defined and configured in the appropriate module file
 conf.misc = misc
 -- sensors

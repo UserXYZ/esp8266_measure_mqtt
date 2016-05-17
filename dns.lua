@@ -9,6 +9,7 @@ local function resolveIP(host,cb)
             print("DNS query failed for "..host)
             cb(nil)
         end
+        conn:close()
         conn = nil
         collectgarbage("collect")
     end)
