@@ -11,16 +11,12 @@ SPEED=9600
 # End of user config
 ######################################################################
 HTTP_FILES := $(wildcard http/*)
-LUA_FILES := message3.lua myds3.lua myemoncms.lua myNtpTime.lua \
+LUA_FILES := message3.lua myds3.lua myemoncms.lua myNtpTime.lua getDST.lua \
 init.lua config.lua main3.lua dns.lua telnet.lua button.lua
-#base64dec.lua httpserver.lua httpserver-request.lua httpserver-basicauth.lua \
-#httpserver-static.lua httpserver-header.lua httpserver-error.lua main.lua mybmp085.lua myNetTime.lua
 
 # Print usage
 usage:
 	@echo "make upload FILE:=<file>  to upload a specific file (i.e make upload FILE:=init.lua)"
-###	@echo "make upload_http          to upload files to be served"
-###	@echo "make upload_server        to upload the server code and init.lua"
 	@echo "make upload_all           to upload all"
 	@echo $(TEST)
 

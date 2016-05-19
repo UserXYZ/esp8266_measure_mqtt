@@ -15,8 +15,8 @@ conf.wlan = wlan
 -- debugging and miscellaneous, sensors pins also
 local misc = {}
 misc.debug = false
-misc.delay = 60 -- data sending period
-misc.ntpsleep = 600 -- ntp sync period
+misc.delay = 60 -- data sending period in seconds
+misc.ntpsleep = 1800 -- ntp sync period in seconds
 misc.zone = "Europe/Belgrade" -- time zonename
 misc.timezonedb_key = "0ZDSLL4QJS5I" -- timezonedb.com API key
 misc.status = false

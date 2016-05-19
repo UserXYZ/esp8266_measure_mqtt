@@ -119,7 +119,6 @@ end
 -- start sending data for all sensors
 print("Sending data at:",ntp.getTime(tz))
 collectgarbage()
---print("main2-1:",node.heap())
 -- start sending data
 	-- send ds18b20 data
 	if conf.sens.ds_enable then
@@ -168,6 +167,4 @@ collectgarbage()
 	end
 -- clean all temporary data structures
 	collectgarbage()
-    collectgarbage()
---print("main2-2:",node.heap())
 end) -- end timer
