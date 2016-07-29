@@ -1,10 +1,16 @@
 local M = {}
+
 local conf = require("config")
 local secure = 0
+
 if conf.mqtt.secure then
     secure = 1
 else
     secure = 0
+end
+
+if conf.misc.use_display then
+    display = require("display")
 end
 
 local function msgSend(m, topic, msg)
@@ -45,12 +51,18 @@ local function setup()
     m:lwt("/lwt/"..conf.mqtt.topic, conf.mqtt.clientid.." died", 0, 0)
 -- if we go offline
     m:on("offline", function(m)
-        print ("reconnecting to "..conf.mqtt.broker..":"..conf.mqtt.port)
+        print ("Reconnecting to "..conf.mqtt.broker..":"..conf.mqtt.port)
         tmr.wdclr()
         tmr.alarm(1, 5000, 1, function()
-			if wifi.sta.status() == 5 then
-				m:connect(conf.mqtt.broker, conf.mqtt.port, secure, function(m)	tmr.stop(1) end)
-			end
+	    local ip = wifi.sta.getip()
+	    if ip ~= nil then
+		m:connect(conf.mqtt.broker, conf.mqtt.port, secure, function(m)	tmr.stop(1) end)
+	    end
+	    --[[
+	    if wifi.sta.status() == 5 then
+		m:connect(conf.mqtt.broker, conf.mqtt.port, secure, function(m)	tmr.stop(1) end)
+	    end
+	    ]]--
         end)
     end)
 -- handle received message
@@ -62,10 +74,10 @@ local function setup()
     end)
 -- connect to broker and subscribe
     m:connect(conf.mqtt.broker, conf.mqtt.port, secure, function(m)
-        print("connected to "..conf.mqtt.broker..":"..conf.mqtt.port)
+        print("Connected to "..conf.mqtt.broker..":"..conf.mqtt.port)
         m:subscribe(conf.mqtt.rtopic, 0, function(m)
-			msgSend(m, conf.mqtt.rtopic, conf.mqtt.clientid.." waiting for command")
-			if conf.misc.debug then print("mqtt setup end") end
+		    msgSend(m, conf.mqtt.rtopic, conf.mqtt.clientid.." waiting for command")
+		    if conf.misc.debug then print("mqtt setup end") end
         end)
     end)
     return(m)

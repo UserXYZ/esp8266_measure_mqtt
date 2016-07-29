@@ -50,13 +50,13 @@ tmr.alarm(1, 5000, 1, function()
 	    local msg="Failed to connect to WiFi Access Point"
 	    print(msg)
 	    if conf.misc.use_display then
-		display.disp_stat(msg)
+		    display.disp_stat(msg)
 	    end
 	else
 	    local msg="Got IP: "..ip
 	    print(msg)
 	    if conf.misc.use_display then
-		display.disp_stat(msg)
+		    display.disp_stat(msg)
 	    end
 	    print('heap: ',node.heap())
          -- Uncomment to automatically start everything

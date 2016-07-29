@@ -1,21 +1,37 @@
 -- main file V3
 --[[ timers used
-6 - for measurement
+6 - for measurement and data sending
 5 - for NTP
+4 - for DST, stops on acquiring DST
+3 - for data display, if enabled
 ]]--
 local conf = require("config")
+
+if conf.misc.use_display then
+    display = require("display")
+    -- if display output is enabled,store all sensor names and values in the array
+    darr = {}
+end
 -- get DST
-local tz=nil
+local tz=0
 local cnt=0
 tmr.wdclr()
 tmr.alarm(4,5000,1,function()
 	local dst=require("getDST")
-    print("Trying to get DST for "..conf.misc.zone)
+	local msg=print("Trying to get DST for "..conf.misc.zone)
+	print(msg)
+	if conf.misc.use_display then
+		display.disp_stat(msg)
+	end
 	dst.getDST(function (p)
 			cnt=cnt+1
 			if cnt == 5 then
-				tmr.stop(4) 
-				print("Error getting DST, using default value of 0 (same as UTC)...")
+				tmr.stop(4)
+				msg="Error getting DST, using default value of 0 (same as UTC)..."
+				print(msg)
+				if conf.misc.use_display then
+				    display.disp_stat(msg)
+				end
 				cnt=nil
 				tz=0
 			end
@@ -23,14 +39,22 @@ tmr.alarm(4,5000,1,function()
 			    print ("Error: "..p)
 		    elseif type(p) == "number" then
 			    tz=p
-                print("Got DST: "..tz.."h")
-                cnt=nil
-                tmr.stop(4)
+			    msg="Got DST: "..tz.."h"
+			    print(msg)
+			    if conf.misc.use_display then
+				    display.disp_stat(msg)
+			    end
+			    cnt=nil
+			    tmr.stop(4)
 		    else
-			    print("Error getting DST, using default value of 0 (same as UTC)...")
+			    msg="Error getting DST, using default value of 0 (same as UTC)..."
+			    print(msg)
+			    if conf.misc.use_display then
+				    display.disp_stat(msg)
+			    end
 			    tz=0
 		    end
-    end)
+	end)
 	dst=nil
 	package.loaded["getDST"] = nil
 	collectgarbage()
@@ -41,7 +65,13 @@ local d=require("dns")
 d.resolveIP("pool.ntp.org",function(r)
     if r then
         ntp.sync(r,tz,function(tm)
-            if tm then print("Start time is:",tm) end
+            if tm then
+        	    local msg="Start time is: "..tm
+        	    print(msg)
+        	    if conf.misc.use_display then
+		            display.disp_stat(msg)
+		    end
+    	    end
         end)
     end
 end)
@@ -53,12 +83,18 @@ tmr.wdclr()
 tmr.alarm(5,conf.misc.ntpsleep*1000,1,function()
 	local d=require("dns")
 	d.resolveIP("pool.ntp.org",function(r)
-        if r then
-            ntp.sync(r,tz,function(tm)
-                if tm then print("NTP time sync at:",tm) end
-            end)
-        end
-    end)
+	    if r then
+		    ntp.sync(r,tz,function(tm)
+		        if tm then
+			        local msg="NTP time sync at: "..tm
+			        print(msg)
+			        if conf.misc.use_display then
+			            display.disp_stat(msg)
+			        end
+		        end
+		    end)
+	    end
+	end)
     d=nil
     package.loaded["dns"] = nil
     collectgarbage()
@@ -77,7 +113,11 @@ if delay < 60000 or delay > 3600000 then
 	print("Measurement timeout out of bounds, defaulting to 60s")
 	delay=60000
 else
-	print("Starting measurement every "..conf.misc.delay.." second(s)")
+	local msg="Starting measurement every "..conf.misc.delay.." second(s)"
+	print(msg)
+	if conf.misc.use_display then
+	    display.disp_stat(msg)
+	end
 end
 tmr.wdclr()
 tmr.alarm(6, delay,1,function()
@@ -102,9 +142,9 @@ if conf.sens.dht_enable then
 	if( status == dht.OK ) then
 		dht_table = {string.format("%.2f",temp),string.format("%.2f",humi)}
 	elseif( status == dht.ERROR_CHECKSUM ) then
-		print( "DHT Checksum error." );
+		print("DHT Checksum error.");
 	elseif( status == dht.ERROR_TIMEOUT ) then
-		print( "DHT Time out." );
+		print("DHT Time out.");
 	end
 end
 -- start BMP180 measuring and putting results into its global table
@@ -122,9 +162,14 @@ collectgarbage()
 -- start sending data
 	-- send ds18b20 data
 	if conf.sens.ds_enable then
+		if conf.misc.use_display then
+		    ds_disp={}
+		end
 		for a,b in pairs(ds_table) do
 			local json=nil
 			local val=string.format("%.2f",b)
+			-- add for display
+			ds_disp[a]=val
 			if conf.mqtt.use then -- send to mqtt broker
 				local t=ntp.getTime(tz)
 				json=cjson.encode({time=t, sensor=a, ds_temp=val})
@@ -136,6 +181,10 @@ collectgarbage()
 			end
 		end
 		ds_table=nil
+		if conf.misc.use_display then
+			darr["DS18B20"]=ds_disp
+			ds_disp=nil
+		end
 	end
 	-- send dht22 data
 	if conf.sens.dht_enable then
@@ -148,6 +197,10 @@ collectgarbage()
 			if conf.emon.use then -- send to emoncms
 				json=cjson.encode({dht_temp=dht_table[1], humidity=dht_table[2]})
 				emon.send(json)
+			end
+			if conf.misc.use_display then
+				darr["DHT22"]=dht_table
+				dht_disp=nil
 			end
 			dht_table=nil
 	end
@@ -163,8 +216,18 @@ collectgarbage()
 				json=cjson.encode({bmp_temp=bmp_table[1], pressure=bmp_table[2], alt=bmp_table[3]})
 				emon.send(json)
 			end
+			if conf.misc.use_display then
+				darr["BMP180"]=bmp_table
+			end
 			bmp_table=nil
 	end
 -- clean all temporary data structures
 	collectgarbage()
 end) -- end timer
+-- send to display if enabled
+--[[
+tmr.wdclr()
+tmr.alarm(3, 1000,1,function()
+-- display
+end
+]]--
