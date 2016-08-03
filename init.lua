@@ -32,6 +32,7 @@ if conf.misc.use_display then
     display = require("display")
     display.setup()
     display.cls()
+    display.disp_stat("Booting...")
 end
 
 local joinCounter = 0

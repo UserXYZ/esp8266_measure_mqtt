@@ -10,6 +10,7 @@ function setup()
 end    
 
 local function cls()
+    disp:begin()
     disp:firstPage()
     repeat
     until disp:nextPage() == false
@@ -18,15 +19,60 @@ local function cls()
 end
 
 local function disp_stat(msg)
+    disp:begin()
     disp:firstPage()
-    disp:setFont(u8g.font_helvR10)
-    disp:setFontRefHeightExtendedText()
-    disp:setFontPosTop()
     disp:setDefaultForegroundColor()
+    disp:setFont(u8g.font_helvR10)
+    disp:setFontPosTop()
+    disp:setFontRefHeightExtendedText()
+
+    local m_w=nil
+    if msg~=nil then
+        m_w=disp:getStrWidth(msg)
+    else
+        return
+    end
+    local d_w=disp:getWidth()
+    local d_txt={}
+   
+    if m_w>d_w then
+        local i=1
+        local j=1    
+        while j<=string.len(msg) do
+            local temp=string.sub(msg,i,j)
+            local t_w=disp:getStrWidth(temp)
+            if t_w>=d_w then
+                temp=string.sub(temp,1,-2)
+                for s=string.len(temp),1,-1 do
+                    if string.sub(temp,s,s)==' ' then
+                        temp=string.sub(temp,1,s-1)
+                        j=s+i
+                        break
+                    end
+                end
+                table.insert(d_txt,temp)
+                temp=nil
+                i=j
+            else
+                j=j+1
+            end
+            if j>string.len(msg) then
+                table.insert(d_txt,temp)
+            end
+        end
+    else
+        for i=1,#d_txt do d_txt[i]=nil end
+        d_txt[1]=msg
+    end
+
     repeat
+        local y=16
         disp:drawStr(0,0,"Status messages")
         disp:drawLine(0,15,127,15)
-        disp:drawStr(0,16,tostring(msg))
+        for i=1,#d_txt do
+            disp:drawStr(0,y,d_txt[i])
+            y=y+disp:getFontLineSpacing()
+        end
     until disp:nextPage() == false
     tmr.delay(100000)
     tmr.wdclr()
@@ -55,14 +101,6 @@ local function disp_data(sensor, data)
         else
             print ("Wrong number of sensors for display!")
         end
---[[
-        disp:setFont(u8g.font_helvR14)
-        --disp:setFont(u8g.font_profont29)
-        disp:setFontPosTop()
-        disp:drawStr(0, 22, "T: ".."23.5"..string.char(176).."C")
-        disp:drawStr(0, 44, "P: ".."1005.9mBar")
-        arr={"T",tostring(25.8)..string.char(176).."C", "P", tostring(1002.3).."mBar"}
-]]--
     until disp:nextPage() == false
     tmr.delay(100000)
     tmr.wdclr()

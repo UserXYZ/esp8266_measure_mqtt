@@ -1,20 +1,18 @@
 -- main file V3
 --[[ timers used
-6 - for measurement and data sending
+6 - for measurement
 5 - for NTP
-4 - for DST, stops on acquiring DST
-3 - for data display, if enabled
 ]]--
 local conf = require("config")
 
 if conf.misc.use_display then
     display = require("display")
-    -- if display output is enabled,store all sensor names and values in the array
-    darr = {}
 end
 -- get DST
 local tz=0
 local cnt=0
+local got_dst=false
+local ntp=require("myNtpTime")
 tmr.wdclr()
 tmr.alarm(4,5000,1,function()
 	local dst=require("getDST")
@@ -34,12 +32,14 @@ tmr.alarm(4,5000,1,function()
 				end
 				cnt=nil
 				tz=0
+                got_dst=true
 			end
 		    if type(p) == "string" then
 			    print ("Error: "..p)
 		    elseif type(p) == "number" then
 			    tz=p
-			    msg="Got DST: "..tz.."h"
+			    msg="Got DST: "..tz.."h. Time is now: "..ntp.getTime(tz)
+                got_dst=true
 			    print(msg)
 			    if conf.misc.use_display then
 				    display.disp_stat(msg)
@@ -53,6 +53,7 @@ tmr.alarm(4,5000,1,function()
 				    display.disp_stat(msg)
 			    end
 			    tz=0
+                got_dst=true
 		    end
 	end)
 	dst=nil
@@ -60,7 +61,7 @@ tmr.alarm(4,5000,1,function()
 	collectgarbage()
 end)
 -- get start time
-local ntp=require("myNtpTime")
+--local ntp=require("myNtpTime")
 local d=require("dns")
 d.resolveIP("pool.ntp.org",function(r)
     if r then
@@ -162,14 +163,9 @@ collectgarbage()
 -- start sending data
 	-- send ds18b20 data
 	if conf.sens.ds_enable then
-		if conf.misc.use_display then
-		    ds_disp={}
-		end
 		for a,b in pairs(ds_table) do
 			local json=nil
 			local val=string.format("%.2f",b)
-			-- add for display
-			ds_disp[a]=val
 			if conf.mqtt.use then -- send to mqtt broker
 				local t=ntp.getTime(tz)
 				json=cjson.encode({time=t, sensor=a, ds_temp=val})
@@ -181,10 +177,6 @@ collectgarbage()
 			end
 		end
 		ds_table=nil
-		if conf.misc.use_display then
-			darr["DS18B20"]=ds_disp
-			ds_disp=nil
-		end
 	end
 	-- send dht22 data
 	if conf.sens.dht_enable then
@@ -197,10 +189,6 @@ collectgarbage()
 			if conf.emon.use then -- send to emoncms
 				json=cjson.encode({dht_temp=dht_table[1], humidity=dht_table[2]})
 				emon.send(json)
-			end
-			if conf.misc.use_display then
-				darr["DHT22"]=dht_table
-				dht_disp=nil
 			end
 			dht_table=nil
 	end
@@ -216,18 +204,8 @@ collectgarbage()
 				json=cjson.encode({bmp_temp=bmp_table[1], pressure=bmp_table[2], alt=bmp_table[3]})
 				emon.send(json)
 			end
-			if conf.misc.use_display then
-				darr["BMP180"]=bmp_table
-			end
 			bmp_table=nil
 	end
 -- clean all temporary data structures
 	collectgarbage()
 end) -- end timer
--- send to display if enabled
---[[
-tmr.wdclr()
-tmr.alarm(3, 1000,1,function()
--- display
-end
-]]--
