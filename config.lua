@@ -22,6 +22,7 @@ misc.timezonedb_key = "0ZDSLL4QJS5I" -- timezonedb.com API key
 misc.status = false
 misc.sw_pin = 1 -- pin for the switch
 misc.use_display = true -- use display or not
+misc.display_timeout = 5 -- 5s between showing sensor data on the display
 -- display is defined and configured in the appropriate module file
 conf.misc = misc
 -- sensors

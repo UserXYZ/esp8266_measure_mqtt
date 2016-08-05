@@ -228,7 +228,7 @@ if conf.misc.use_display then
     local num=0
     local nrec=1
     tmr.wdclr()
-    tmr.alarm(3, 3000, 1, function()
+    tmr.alarm(3, conf.misc.display_timeout*1000, 1, function()
         for i in pairs(disp_data) do
             if disp_data[i]~=nil then num=num+1 end
         end
