@@ -78,7 +78,7 @@ local function disp_stat(msg)
     tmr.wdclr()
 end
 
-local function disp_data(sensor, data)
+local function disp_data(data)
     disp:firstPage()
     disp:setFont(u8g.font_helvR10)
     disp:setFontRefHeightExtendedText()
@@ -87,20 +87,22 @@ local function disp_data(sensor, data)
     repeat
         disp:setFont(u8g.font_helvR10)
         disp:setFontPosTop()
-        disp:drawStr(0, 0, "Sensor: "..sensor)
+        disp:drawStr(0, 0, "Sensor: "..data[1])
         disp:drawLine(0,15,127,15)
-        if #data == 2 then
+        
+        if #data == 3 then
             -- only one sensor, use larger font
             disp:setFont(u8g.font_helvR18)
-            disp:drawStr(0, 50, data[1]..": "..data[2])
-        elseif #data == 4 then
+            disp:drawStr(0, 50, data[2]..": "..data[3])
+        elseif #data == 5 then
             -- two sensors, use smaler font, draw in two rows
             disp:setFont(u8g.font_helvR14)
-            disp:drawStr(0, 37, data[1]..": "..data[2])
-            disp:drawStr(0, 60, data[3]..": "..data[4])
+            disp:drawStr(0, 37, data[2]..": "..data[3])
+            disp:drawStr(0, 60, data[4]..": "..data[5])
         else
             print ("Wrong number of sensors for display!")
         end
+        
     until disp:nextPage() == false
     tmr.delay(100000)
     tmr.wdclr()

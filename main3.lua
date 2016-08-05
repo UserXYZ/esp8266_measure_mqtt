@@ -2,11 +2,14 @@
 --[[ timers used
 6 - for measurement
 5 - for NTP
+4 - for DST
+3 - for display
 ]]--
 local conf = require("config")
 
 if conf.misc.use_display then
     display = require("display")
+    disp_data={}
 end
 -- get DST
 local tz=0
@@ -141,7 +144,7 @@ if conf.sens.dht_enable then
 	print("Starting measurement with DHT22")
 	local status,temp,humi,temp_decimal,humi_decimal = dht.read(conf.sens.dht_pin)
 	if( status == dht.OK ) then
-		dht_table = {string.format("%.2f",temp),string.format("%.2f",humi)}
+		dht_table = {string.format("%.1f",temp),string.format("%.1f",humi)}
 	elseif( status == dht.ERROR_CHECKSUM ) then
 		print("DHT Checksum error.");
 	elseif( status == dht.ERROR_TIMEOUT ) then
@@ -152,20 +155,24 @@ end
 if conf.sens.bmp_enable then
 	print("Starting measurement with BMP180")
 	bmp085.init(conf.sens.bmp_sda,conf.sens.bmp_scl)
-	local t=string.format("%.2f",bmp085.temperature()/10)
-	local p=string.format("%.2f",bmp085.pressure(3)/100)
-	local al=string.format("%.2f",(bmp085.pressure(3)-101325)*843/10000)
+	local t=string.format("%.1f",bmp085.temperature()/10)
+	local p=string.format("%.1f",bmp085.pressure(3)/100)
+	local al=string.format("%.1f",(bmp085.pressure(3)-101325)*843/10000)
 	bmp_table = {t,p,al}
 end
 -- start sending data for all sensors
 print("Sending data at:",ntp.getTime(tz))
 collectgarbage()
+--"T",tostring(25.8)..string.char(176).."C", "P", tostring(1002.3).."mBar"
 -- start sending data
 	-- send ds18b20 data
 	if conf.sens.ds_enable then
 		for a,b in pairs(ds_table) do
 			local json=nil
-			local val=string.format("%.2f",b)
+			local val=string.format("%.1f",b)
+            if conf.misc.use_display then
+                table.insert(disp_data,{a,"T",tostring(val)..string.char(176).."C"})
+            end
 			if conf.mqtt.use then -- send to mqtt broker
 				local t=ntp.getTime(tz)
 				json=cjson.encode({time=t, sensor=a, ds_temp=val})
@@ -180,6 +187,9 @@ collectgarbage()
 	end
 	-- send dht22 data
 	if conf.sens.dht_enable then
+            if conf.misc.use_display then
+                table.insert(disp_data,{"DHT22","T",tostring(dht_table[1])..string.char(176).."C","Hum",tostring(dht_table[2]).."%"})
+            end
 			local json=nil
 			if conf.mqtt.use then -- send to mqtt broker
 				local t=ntp.getTime(tz)
@@ -194,6 +204,9 @@ collectgarbage()
 	end
 	-- send bmp180 data
 	if conf.sens.bmp_enable then
+            if conf.misc.use_display then
+                table.insert(disp_data,{"BMP180","T",tostring(bmp_table[1])..string.char(176).."C","P",tostring(bmp_table[2]).."mBar"})
+            end
 			local json=nil
 			local t=ntp.getTime(tz)
 			if conf.mqtt.use then -- send to mqtt broker
@@ -209,3 +222,26 @@ collectgarbage()
 -- clean all temporary data structures
 	collectgarbage()
 end) -- end timer
+-- start timer for data display, if display is enabled
+
+if conf.misc.use_display then
+    local num=0
+    local nrec=1
+    tmr.wdclr()
+    tmr.alarm(3, 3000, 1, function()
+        for i in pairs(disp_data) do
+            if disp_data[i]~=nil then num=num+1 end
+        end
+        if num>0 then
+            if nrec<=num then
+                for i in pairs(disp_data[nrec]) do
+                    display.disp_data(disp_data[nrec])
+                    --print(disp_data[nrec][i])
+                end
+                nrec=nrec+1
+                if nrec>num then nrec=1 end
+            end
+        end
+        num=0
+    end)
+end
