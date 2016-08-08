@@ -7,7 +7,6 @@
 ]]--
 local conf = require("config")
 if conf.misc.use_display then
-    display = require("display")
     disp_data={}
 end
 -- get DST
@@ -24,40 +23,40 @@ tmr.alarm(4,5000,tmr.ALARM_AUTO,function()
 		display.disp_stat(msg)
 	end
 	dst.getDST(function (p)
-			cnt=cnt+1
-			if cnt == 5 then
-				tmr.stop(4)
-                tmr.unregister(4)
-				msg="Error getting DST, using default value of 0 (same as UTC)..."
-				print(msg)
-				if conf.misc.use_display then
-				    display.disp_stat(msg)
-				end
-				cnt=nil
-				tz=0
-                got_dst=true
+		cnt=cnt+1
+		if cnt == 5 then
+			tmr.stop(4)
+            tmr.unregister(4)
+			msg="Error getting DST, using default value of 0 (same as UTC)..."
+			print(msg)
+			if conf.misc.use_display then
+			    display.disp_stat(msg)
 			end
-		    if type(p) == "string" then
-			    print ("Error: "..p)
-		    elseif type(p) == "number" then
-			    tz=p
-			    msg="Got DST: "..tz.."h. Time is now: "..ntp.getTime(tz)
-                got_dst=true
-			    print(msg)
-			    if conf.misc.use_display then
-				    display.disp_stat(msg)
-			    end
-			    cnt=nil
-			    tmr.stop(4)
-		    else
-			    msg="Error getting DST, using default value of 0 (same as UTC)..."
-			    print(msg)
-			    if conf.misc.use_display then
-				    display.disp_stat(msg)
-			    end
-			    tz=0
-                got_dst=true
+			cnt=nil
+			tz=0
+            got_dst=true
+		end
+		if type(p) == "string" then
+		    print ("Error: "..p)
+		elseif type(p) == "number" then
+		    tz=p
+		    msg="Got DST: "..tz.."h. Time is now: "..ntp.getTime(tz)
+            got_dst=true
+		    print(msg)
+		    if conf.misc.use_display then
+			    display.disp_stat(msg)
 		    end
+		    cnt=nil
+		    tmr.stop(4)
+		else
+		    msg="Error getting DST, using default value of 0 (same as UTC)..."
+		    print(msg)
+		    if conf.misc.use_display then
+			    display.disp_stat(msg)
+		    end
+		    tz=0
+            got_dst=true
+		end
 	end)
 	dst=nil
 	package.loaded["getDST"] = nil

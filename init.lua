@@ -1,11 +1,11 @@
 -- prepare files
 local compileAndRemoveIfNeeded = function(f)
     if file.open(f) then
-	file.close()
-	print('Compiling:', f)
-	node.compile(f)
-	file.remove(f)
-	collectgarbage()
+	    file.close()
+	    print('Compiling:', f)
+	    node.compile(f)
+	    file.remove(f)
+	    collectgarbage()
     end
 end
 -- main()
@@ -37,38 +37,38 @@ end
 
 local joinCounter = 0
 local joinMaxAttempts = 20
-tmr.alarm(1, 5000, 1, function()
+tmr.alarm(1, 5000, tmr.ALARM_AUTO, function()
     local ip = wifi.sta.getip()
     if ip == nil and joinCounter < joinMaxAttempts then
-	local msg="Connecting to WiFi Access Point..."
-	print(msg)
-	if conf.misc.use_display then
-	    display.disp_stat(msg)
-	end
-	joinCounter = joinCounter +1
+	    local msg="Connecting to WiFi Access Point..."
+	    print(msg)
+	    if conf.misc.use_display then
+	        display.disp_stat(msg)
+	    end
+	    joinCounter = joinCounter +1
     else
-	if joinCounter == joinMaxAttempts then
-	    local msg="Failed to connect to WiFi Access Point"
-	    print(msg)
-	    if conf.misc.use_display then
-		    display.disp_stat(msg)
-	    end
-	else
-	    local msg="Got IP: "..ip
-	    print(msg)
-	    if conf.misc.use_display then
-		    display.disp_stat(msg)
-	    end
-	    print('heap: ',node.heap())
+	    if joinCounter == joinMaxAttempts then
+	        local msg="Failed to connect to WiFi Access Point"
+	        print(msg)
+	        if conf.misc.use_display then
+		        display.disp_stat(msg)
+	        end
+	    else
+	        local msg="Got IP: "..ip
+	        print(msg)
+	        if conf.misc.use_display then
+		        display.disp_stat(msg)
+	        end
+	        print('heap: ',node.heap())
          -- Uncomment to automatically start everything
             --dofile("telnet.lc")
-	    dofile("main3.lc")
-	    dofile("button.lc")
-	end
-	tmr.stop(1)
-    tmr.unregister(1)
-	joinCounter = nil
-	joinMaxAttempts = nil
-	collectgarbage()
+	        dofile("main3.lc")
+	        dofile("button.lc")
+	    end
+	    tmr.stop(1)
+        tmr.unregister(1)
+	    joinCounter = nil
+	    joinMaxAttempts = nil
+	    collectgarbage()
     end
 end)
