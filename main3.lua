@@ -6,7 +6,6 @@
 3 - for display
 ]]--
 local conf = require("config")
-
 if conf.misc.use_display then
     display = require("display")
     disp_data={}
@@ -17,7 +16,7 @@ local cnt=0
 local got_dst=false
 local ntp=require("myNtpTime")
 tmr.wdclr()
-tmr.alarm(4,5000,1,function()
+tmr.alarm(4,5000,tmr.ALARM_AUTO,function()
 	local dst=require("getDST")
 	local msg=print("Trying to get DST for "..conf.misc.zone)
 	print(msg)
@@ -28,6 +27,7 @@ tmr.alarm(4,5000,1,function()
 			cnt=cnt+1
 			if cnt == 5 then
 				tmr.stop(4)
+                tmr.unregister(4)
 				msg="Error getting DST, using default value of 0 (same as UTC)..."
 				print(msg)
 				if conf.misc.use_display then
@@ -74,7 +74,7 @@ d.resolveIP("pool.ntp.org",function(r)
         	    print(msg)
         	    if conf.misc.use_display then
 		            display.disp_stat(msg)
-		    end
+		        end
     	    end
         end)
     end
@@ -84,7 +84,7 @@ package.loaded["dns"] = nil
 collectgarbage()
 -- start ntp polling
 tmr.wdclr()
-tmr.alarm(5,conf.misc.ntpsleep*1000,1,function()
+tmr.alarm(5,conf.misc.ntpsleep*1000,tmr.ALARM_AUTO,function()
 	local d=require("dns")
 	d.resolveIP("pool.ntp.org",function(r)
 	    if r then
@@ -124,46 +124,56 @@ else
 	end
 end
 tmr.wdclr()
-tmr.alarm(6, delay,1,function()
+tmr.alarm(6, delay,tmr.ALARM_AUTO,function()
 -- start DS18B20 measuring and putting results into its global table
-if conf.sens.ds_enable then
-	local dstemp=require("myds3")
-	ds_table={}
-	print("Starting measurement with DS18B20")
-	dstemp.readT(conf.misc.ds_pin,function(r)
-    	for k,v in pairs(r) do
-       		ds_table[k]=v
-		end
-	end)
-	dstemp=nil
-	package.loaded["myds3"] = nil
-	collectgarbage()
-end
+    if conf.sens.ds_enable then
+	    local dstemp=require("myds3")
+	    ds_table={}
+	    print("Starting measurement with DS18B20")
+	    dstemp.readT(conf.misc.ds_pin,function(r)
+    	    for k,v in pairs(r) do
+       		    ds_table[k]=v
+		    end
+	    end)
+	    dstemp=nil
+	    package.loaded["myds3"] = nil
+	    collectgarbage()
+    end
 -- start DHT22 measuring and putting results into its global table
-if conf.sens.dht_enable then
-	print("Starting measurement with DHT22")
-	local status,temp,humi,temp_decimal,humi_decimal = dht.read(conf.sens.dht_pin)
-	if( status == dht.OK ) then
-		dht_table = {string.format("%.1f",temp),string.format("%.1f",humi)}
-	elseif( status == dht.ERROR_CHECKSUM ) then
-		print("DHT Checksum error.");
-	elseif( status == dht.ERROR_TIMEOUT ) then
-		print("DHT Time out.");
-	end
-end
+    if conf.sens.dht_enable then
+	    print("Starting measurement with DHT22")
+	    local status,temp,humi,temp_decimal,humi_decimal = dht.read(conf.sens.dht_pin)
+	    if( status == dht.OK ) then
+		    dht_table = {string.format("%.1f",temp),string.format("%.1f",humi)}
+	    elseif( status == dht.ERROR_CHECKSUM ) then
+		    print("DHT Checksum error.");
+	    elseif( status == dht.ERROR_TIMEOUT ) then
+		    print("DHT Time out.");
+	    end
+    end
 -- start BMP180 measuring and putting results into its global table
-if conf.sens.bmp_enable then
-	print("Starting measurement with BMP180")
-	bmp085.init(conf.sens.bmp_sda,conf.sens.bmp_scl)
-	local t=string.format("%.1f",bmp085.temperature()/10)
-	local p=string.format("%.1f",bmp085.pressure(3)/100)
-	local al=string.format("%.1f",(bmp085.pressure(3)-101325)*843/10000)
-	bmp_table = {t,p,al}
-end
+    if conf.sens.bmp_enable then
+	    print("Starting measurement with BMP180")
+	    bmp085.init(conf.sens.bmp_sda,conf.sens.bmp_scl)
+	    local t=string.format("%.1f",bmp085.temperature()/10)
+	    local p=string.format("%.1f",bmp085.pressure(3)/100)
+	    local al=string.format("%.1f",(bmp085.pressure(3)-101325)*843/10000)
+	    bmp_table = {t,p,al}
+    end
 -- start sending data for all sensors
-print("Sending data at:",ntp.getTime(tz))
-collectgarbage()
+    print("Sending data at:",ntp.getTime(tz))
 --"T",tostring(25.8)..string.char(176).."C", "P", tostring(1002.3).."mBar"
+-- stop display timer so it can read fresh data and clear display data table
+    if conf.misc.use_display then
+        local running, mode = tmr.state(3)
+        if running then
+            tmr.stop(3)
+            for i=1,#disp_data do disp_data[i]=nil end
+            disp_data=nil
+            disp_data={}
+        end
+    end
+collectgarbage()
 -- start sending data
 	-- send ds18b20 data
 	if conf.sens.ds_enable then
@@ -221,14 +231,14 @@ collectgarbage()
 	end
 -- clean all temporary data structures
 	collectgarbage()
+    tmr.start(3)
 end) -- end timer
 -- start timer for data display, if display is enabled
-
 if conf.misc.use_display then
     local num=0
     local nrec=1
     tmr.wdclr()
-    tmr.alarm(3, conf.misc.display_timeout*1000, 1, function()
+    tmr.alarm(3, conf.misc.display_timeout*1000, tmr.ALARM_AUTO, function()
         for i in pairs(disp_data) do
             if disp_data[i]~=nil then num=num+1 end
         end
@@ -236,7 +246,6 @@ if conf.misc.use_display then
             if nrec<=num then
                 for i in pairs(disp_data[nrec]) do
                     display.disp_data(disp_data[nrec])
-                    --print(disp_data[nrec][i])
                 end
                 nrec=nrec+1
                 if nrec>num then nrec=1 end

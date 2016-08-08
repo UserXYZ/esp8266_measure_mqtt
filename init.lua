@@ -66,6 +66,7 @@ tmr.alarm(1, 5000, 1, function()
 	    dofile("button.lc")
 	end
 	tmr.stop(1)
+    tmr.unregister(1)
 	joinCounter = nil
 	joinMaxAttempts = nil
 	collectgarbage()
