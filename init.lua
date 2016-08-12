@@ -30,7 +30,7 @@ collectgarbage()
 
 if conf.misc.use_display then
     display = require("display")
-    display.setup()
+    display.setup(5,6,0x3c)
     display.cls()
     display.disp_stat("Booting...")
 end
