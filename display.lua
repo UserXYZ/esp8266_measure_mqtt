@@ -1,12 +1,15 @@
 local M = {}
 
-function setup()
-    local sda = 5 -- GPIO14
-    local scl = 6 -- GPIO12
-    local sla = 0x3c
-    
-    i2c.setup(0, sda, scl, i2c.SLOW)
-    disp = u8g.ssd1306_128x64_i2c(sla)
+function setup(sda, scl, addr)
+    if sda~=nil and scl~=nil and addr~=nil then
+        if i2c.setup(0, sda, scl, i2c.SLOW) ~= 0 then
+            disp = u8g.ssd1306_128x64_i2c(addr)
+        else
+            return nil
+        end
+    else
+        print("Wrong display parameters!")
+    end
 end    
 
 local function cls()
