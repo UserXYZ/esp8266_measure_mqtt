@@ -24,6 +24,7 @@ misc.sw_pin = 1 -- pin for the switch
 misc.use_display = false -- use display or not
 misc.display_timeout = 5 -- 5s between showing sensor data on the display
 -- display is defined and configured in the appropriate module file
+misc.use_rtc = false -- use RTC module based on DS1307 and others
 conf.misc = misc
 -- sensors
 local sens = {}
