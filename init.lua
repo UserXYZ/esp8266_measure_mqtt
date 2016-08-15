@@ -9,7 +9,7 @@ local compileAndRemoveIfNeeded = function(f)
     end
 end
 -- main()
-local serverFiles = {'dns.lua', 'telnet.lua','main3.lua','message3.lua', 'myds3.lua', 'myNtpTime.lua', 'getDST.lua', 'myemoncms.lua', 'button.lua', 'display.lua'}
+local serverFiles = {'dns.lua', 'telnet.lua','main3.lua','message3.lua', 'myds3.lua', 'myNtpTime.lua', 'getDST.lua', 'myemoncms.lua', 'button.lua', 'display.lua', 'ds1307.lua'}
 for i, f in ipairs(serverFiles) do
     compileAndRemoveIfNeeded(f)
 end
@@ -36,7 +36,6 @@ if conf.display.use then
         display.setup(conf.display.spi_miso, conf.display.spi_mosi, conf.display.spi_cs, conf.display.spi_clk)
     else
         print("Wrong type of display selected")
-print(conf.display.type)
         display = nil
         package.loaded["display"] = nil
         conf.display.use = false
