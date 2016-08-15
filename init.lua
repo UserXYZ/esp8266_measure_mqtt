@@ -27,10 +27,24 @@ wifi.setmode(wifiConfig.mode)
 wifi.sta.config(conf.wlan.ssid, conf.wlan.pwd)
 wifiConfig = nil
 collectgarbage()
-
-if conf.misc.use_display then
+--set display parameters and initialize if display is in use
+if conf.display.use then
     display = require("display")
-    display.setup(5,6,0x3c)
+    if string.lower(conf.display.type) == "i2c" then
+        display.setup(conf.display.i2c_sda, conf.display.i2c_scl, conf.display.i2c_addr)
+    elseif string.lower(conf.display.type) ~= "spi" then
+        display.setup(conf.display.spi_miso, conf.display.spi_mosi, conf.display.spi_cs, conf.display.spi_clk)
+    else
+        print("Wrong type of display selected")
+print(conf.display.type)
+        display = nil
+        package.loaded["display"] = nil
+        conf.display.use = false
+        collectgarbage()
+    end
+end
+
+if conf.display.use then
     display.cls()
     display.disp_stat("Booting...")
 end

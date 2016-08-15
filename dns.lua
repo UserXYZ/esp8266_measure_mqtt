@@ -2,7 +2,7 @@ local M = {}
 
 local conf = require("config")
 
-if conf.misc.use_display then
+if conf.display.use then
     display = require("display")
 end
 
@@ -14,7 +14,7 @@ local function resolveIP(host,cb)
         else
     	    local msg="DNS query failed for "..host
             print(msg)
-            if conf.misc.use_display then
+            if conf.display.use then
         	    display.disp_stat(msg)
     	    end
             cb(nil)

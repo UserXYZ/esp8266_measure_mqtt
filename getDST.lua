@@ -4,7 +4,7 @@ local M = {}
 
 local conf = require("config")
 
-if conf.misc.use_display then
+if conf.display.use then
     display = require("display")
 end
 
@@ -27,7 +27,6 @@ local function getDST(cb)
     conn:on("receive", function(conn, payload)
 -- parse response
         if payload then
---print("payload="..payload)
             local i,j=string.find(payload,"{.*}")
             if i and j then
                 local l=string.sub(payload,i,j)
@@ -51,7 +50,7 @@ local function getDST(cb)
             conn=nil
             collectgarbage()
             local msg="DNS can't resolve DST server"..host
-            if conf.misc.use_display then
+            if conf.display.use then
         	    display.disp_stat(msg)
     	    end
             cb(msg)

@@ -27,7 +27,22 @@ local function setup(sda, scl, addr)
         print("Wrong RTC parameters!")
     end
 end
-
+-- translate day number to text date or vice versa
+local function getDay(day)
+    local days = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}
+    if type(day) == "number" and day<8 and day>0 then
+        return days[day]
+    elseif type(day) == "string" then
+        for k,v in ipairs(days) do
+            if string.lower(v) == string.tolower(day) then
+                return k
+            else
+                return nil
+        end
+    else
+        return nil
+    end
+end
 --get time from RTC
 local function getTime()
   i2c.start(id)
@@ -46,36 +61,50 @@ local function getTime()
   bcdToDec(tonumber(string.byte(c, 6))),
   bcdToDec(tonumber(string.byte(c, 7)))
 end
-
+-- return full date and time in human readable form
 local function getTimeFull()
     second, minute, hour, day, date, month, year = getTime()
     year = year+2000
-    days = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}
-    return string.format("%02d:%02d:%02d", hour, minute, second), days[day], string.format("%02d.%02d.%04d", date, month, year)
+    return string.format("%02d:%02d:%02d", hour, minute, second), getDay(day), string.format("%02d.%02d.%04d", date, month, year)
 end
-
 --set time to RTC
 local function setTimeFull(hour, minute, second, day, date, month, year)
-  i2c.start(id)
-  i2c.address(id, dev_addr, i2c.TRANSMITTER)
-  i2c.write(id, 0x00)
-  i2c.write(id, decToBcd(second))
-  i2c.write(id, decToBcd(minute))
-  i2c.write(id, decToBcd(hour))
-  i2c.write(id, decToBcd(day))
-  i2c.write(id, decToBcd(date))
-  i2c.write(id, decToBcd(month))
-  i2c.write(id, decToBcd(year))
-  i2c.stop(id)
+    if type(day) == string then
+        day = getDay(day)
+    end
+    i2c.start(id)
+    i2c.address(id, dev_addr, i2c.TRANSMITTER)
+    i2c.write(id, 0x00)
+    i2c.write(id, decToBcd(second))
+    i2c.write(id, decToBcd(minute))
+    i2c.write(id, decToBcd(hour))
+    i2c.write(id, decToBcd(day))
+    i2c.write(id, decToBcd(date))
+    i2c.write(id, decToBcd(month))
+    i2c.write(id, decToBcd(year))
+    i2c.stop(id)
 end
-
-local function setTime(...)
+--[[
+local function setTimeDate(...)
+    -- should accept any number of arguments and differentiate on separator
+    -- if given aa:bb or aa:bb:cc, treat as time
+    -- if given aa.bb.cc od aa.bb.cccc or aa/bb/cc or aa/bb/cccc treat as date
+    -- combination of both should also work
     --if arg[n] == 0 then return nil end
     --function f(...) for k,v in ipairs(arg) do print(k,v) end end
     for k,v in ipairs(arg) do
         
     end
 end
+]]--
+local function setTime(hour, minute, second)
+
+end
+
+local function setDate(day, month, year)
+
+end
+
 -- Return module table
 M = {
     setup = setup,

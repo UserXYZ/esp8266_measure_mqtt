@@ -6,7 +6,7 @@
 3 - for display
 ]]--
 local conf = require("config")
-if conf.misc.use_display then
+if conf.display.use then
     disp_data={}
 end
 -- get DST
@@ -19,7 +19,7 @@ tmr.alarm(4,5000,tmr.ALARM_AUTO,function()
 	local dst=require("getDST")
 	local msg=print("Trying to get DST for "..conf.misc.zone)
 	print(msg)
-	if conf.misc.use_display then
+	if conf.display.use then
 		display.disp_stat(msg)
 	end
 	dst.getDST(function (p)
@@ -29,7 +29,7 @@ tmr.alarm(4,5000,tmr.ALARM_AUTO,function()
             tmr.unregister(4)
 			msg="Error getting DST, using default value of 0 (same as UTC)..."
 			print(msg)
-			if conf.misc.use_display then
+			if conf.display.use then
 			    display.disp_stat(msg)
 			end
 			cnt=nil
@@ -43,7 +43,7 @@ tmr.alarm(4,5000,tmr.ALARM_AUTO,function()
 		    msg="Got DST: "..tz.."h. Time is now: "..ntp.getTime(tz)
             got_dst=true
 		    print(msg)
-		    if conf.misc.use_display then
+		    if conf.display.use then
 			    display.disp_stat(msg)
 		    end
 		    cnt=nil
@@ -51,7 +51,7 @@ tmr.alarm(4,5000,tmr.ALARM_AUTO,function()
 		else
 		    msg="Error getting DST, using default value of 0 (same as UTC)..."
 		    print(msg)
-		    if conf.misc.use_display then
+		    if conf.display.use then
 			    display.disp_stat(msg)
 		    end
 		    tz=0
@@ -71,7 +71,7 @@ d.resolveIP("pool.ntp.org",function(r)
             if tm then
         	    local msg="Start time is: "..tm
         	    print(msg)
-        	    if conf.misc.use_display then
+        	    if conf.display.use then
 		            display.disp_stat(msg)
 		        end
     	    end
@@ -91,7 +91,7 @@ tmr.alarm(5,conf.misc.ntpsleep*1000,tmr.ALARM_AUTO,function()
 		        if tm then
 			        local msg="NTP time sync at: "..tm
 			        print(msg)
-			        if conf.misc.use_display then
+			        if conf.display.use then
 			            display.disp_stat(msg)
 			        end
 		        end
@@ -118,7 +118,7 @@ if delay < 60000 or delay > 3600000 then
 else
 	local msg="Starting measurement every "..conf.misc.delay.." second(s)"
 	print(msg)
-	if conf.misc.use_display then
+	if conf.display.use then
 	    display.disp_stat(msg)
 	end
 end
@@ -163,7 +163,7 @@ tmr.alarm(6, delay,tmr.ALARM_AUTO,function()
     print("Sending data at:",ntp.getTime(tz))
 --"T",tostring(25.8)..string.char(176).."C", "P", tostring(1002.3).."mBar"
 -- stop display timer so it can read fresh data and clear display data table
-    if conf.misc.use_display then
+    if conf.display.use then
         local running, mode = tmr.state(3)
         if running then
             tmr.stop(3)
@@ -179,7 +179,7 @@ collectgarbage()
 		for a,b in pairs(ds_table) do
 			local json=nil
 			local val=string.format("%.1f",b)
-            if conf.misc.use_display then
+            if conf.display.use then
                 table.insert(disp_data,{a,"T",tostring(val)..string.char(176).."C"})
             end
 			if conf.mqtt.use then -- send to mqtt broker
@@ -196,7 +196,7 @@ collectgarbage()
 	end
 	-- send dht22 data
 	if conf.sens.dht_enable then
-            if conf.misc.use_display then
+            if conf.display.use then
                 table.insert(disp_data,{"DHT22","T",tostring(dht_table[1])..string.char(176).."C","Hum",tostring(dht_table[2]).."%"})
             end
 			local json=nil
@@ -213,7 +213,7 @@ collectgarbage()
 	end
 	-- send bmp180 data
 	if conf.sens.bmp_enable then
-            if conf.misc.use_display then
+            if conf.display.use then
                 table.insert(disp_data,{"BMP180","T",tostring(bmp_table[1])..string.char(176).."C","P",tostring(bmp_table[2]).."mBar"})
             end
 			local json=nil
@@ -233,11 +233,11 @@ collectgarbage()
     tmr.start(3)
 end) -- end timer
 -- start timer for data display, if display is enabled
-if conf.misc.use_display then
+if conf.display.use then
     local num=0
     local nrec=1
     tmr.wdclr()
-    tmr.alarm(3, conf.misc.display_timeout*1000, tmr.ALARM_AUTO, function()
+    tmr.alarm(3, conf.display.timeout*1000, tmr.ALARM_AUTO, function()
         for i in pairs(disp_data) do
             if disp_data[i]~=nil then num=num+1 end
         end

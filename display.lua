@@ -11,7 +11,7 @@ function setup(sda, scl, addr)
         print("Wrong display parameters!")
     end
 end    
-
+-- clear screen
 local function cls()
     disp:begin()
     disp:firstPage()
@@ -20,7 +20,7 @@ local function cls()
     tmr.delay(100000)
     tmr.wdclr()
 end
-
+-- display status messages
 local function disp_stat(msg)
     disp:begin()
     disp:firstPage()
@@ -80,7 +80,7 @@ local function disp_stat(msg)
     tmr.delay(100000)
     tmr.wdclr()
 end
-
+-- display data from sensors
 local function disp_data(data)
     disp:firstPage()
     disp:setFont(u8g.font_helvR10)
@@ -110,7 +110,6 @@ local function disp_data(data)
     tmr.delay(100000)
     tmr.wdclr()
 end
-
 -- Return module table
 M = {
     setup = setup,

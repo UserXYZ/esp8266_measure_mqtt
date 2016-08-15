@@ -9,10 +9,6 @@ else
     secure = 0
 end
 
-if conf.misc.use_display then
-    display = require("display")
-end
-
 local function msgSend(m, topic, msg)
 	local t=""
     if topic == "" or topic == nil then
