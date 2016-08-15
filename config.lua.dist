@@ -21,11 +21,21 @@ misc.zone = "Europe/Belgrade" -- time zonename
 misc.timezonedb_key = "012345689AB" -- timezonedb.com API key
 misc.status = false
 misc.sw_pin = 1 -- pin for the switch
-misc.use_display = false -- use display or not
-misc.display_timeout = 5 -- 5s between showing sensor data on the display
--- display is defined and configured in the appropriate module file
 misc.use_rtc = false -- use RTC module based on DS1307 and others
 conf.misc = misc
+-- display definitions
+local display = {}
+display.use = false -- use display or not
+display.timeout = 5 -- 5s between showing sensor data on the display
+display.type = "i2c" -- can be i2c or spi
+display.i2c_addr = 0x3c -- the usual I2C address, if needed
+display.i2c_sda = 5 -- SDA for I2C
+display.i2c_scl = 6 -- SCL for I2C
+display.spi_miso = 5 -- MISO for SPI
+display.spi_mosi = 6 -- MOSI for SPI
+display.spi_cs = 7 - chip select for SPI
+display.spi_clk = 8 - clock for SPI
+conf.display = display
 -- sensors
 local sens = {}
 -- DS18B20 temperature measurement sensor
