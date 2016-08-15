@@ -22,6 +22,9 @@ misc.timezonedb_key = "012345689AB" -- timezonedb.com API key
 misc.status = false
 misc.sw_pin = 1 -- pin for the switch
 misc.use_rtc = false -- use RTC module based on DS1307 and others
+misc.rtc_sda = 5
+misc.rtc_scl = 6
+misc.rtc_addr = 0x68
 conf.misc = misc
 -- display definitions
 local display = {}
