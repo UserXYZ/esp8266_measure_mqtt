@@ -1,6 +1,15 @@
 local M = {}
-
-function setup(sda, scl, addr)
+local disp=nil
+--[[
+local function setup()
+    local cs  = 8 -- GPIO15, pull-down 10k to GND
+    local dc  = 1 -- GPIO5
+    local res = 0 -- GPIO16
+    spi.setup(1, spi.MASTER, spi.CPOL_LOW, spi.CPHA_LOW, 8, 8)
+    disp = u8g.pcd8544_84x48_hw_spi(cs, dc, res)
+end
+]]--
+local function setup(sda, scl, addr)
     if sda~=nil and scl~=nil and addr~=nil then
         if i2c.setup(0, sda, scl, i2c.SLOW) ~= 0 then
             disp = u8g.ssd1306_128x64_i2c(addr)
@@ -29,15 +38,15 @@ local function disp_stat(msg)
     disp:setFontPosTop()
     disp:setFontRefHeightExtendedText()
 
-    local m_w=nil
+    local m_w=nil -- message width in current font, in pixels
     if msg~=nil then
         m_w=disp:getStrWidth(msg)
     else
         return
     end
-    local d_w=disp:getWidth()
+    local d_w=disp:getWidth() -- display width in pixels
     local d_txt={}
-   
+    -- split message into pieces on spaces
     if m_w>d_w then
         local i=1
         local j=1    
@@ -67,7 +76,7 @@ local function disp_stat(msg)
         for i=1,#d_txt do d_txt[i]=nil end
         d_txt[1]=msg
     end
-
+    -- draw all messages from d_txt
     repeat
         local y=16
         disp:drawStr(0,0,"Status messages")
@@ -79,6 +88,8 @@ local function disp_stat(msg)
     until disp:nextPage() == false
     tmr.delay(100000)
     tmr.wdclr()
+    d_txt=nil
+    collectgarbage()
 end
 -- display data from sensors
 local function disp_data(data)
@@ -92,7 +103,7 @@ local function disp_data(data)
         disp:setFontPosTop()
         disp:drawStr(0, 0, "Sensor: "..data[1])
         disp:drawLine(0,15,127,15)
-        
+        -- select font and one or two row display
         if #data == 3 then
             -- only one sensor, use larger font
             disp:setFont(u8g.font_helvR18)
@@ -105,7 +116,6 @@ local function disp_data(data)
         else
             print ("Wrong number of sensors for display!")
         end
-        
     until disp:nextPage() == false
     tmr.delay(100000)
     tmr.wdclr()
