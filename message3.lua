@@ -43,7 +43,7 @@ end
 
 local function setup()
     if conf.misc.debug then print("mqtt setup start") end
-    m = mqtt.Client(conf.mqtt.clientid, 120, conf.mqtt.user, conf.mqtt.password)
+    local m = mqtt.Client(conf.mqtt.clientid, 120, conf.mqtt.user, conf.mqtt.password)
     m:lwt("/lwt/"..conf.mqtt.topic, conf.mqtt.clientid.." died", 0, 0)
 -- if we go offline
     m:on("offline", function(m)
