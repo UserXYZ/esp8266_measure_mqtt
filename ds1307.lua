@@ -38,6 +38,7 @@ local function getDay(day)
                 return k
             else
                 return nil
+            end
         end
     else
         return nil
@@ -63,7 +64,7 @@ local function getTime()
 end
 -- return full date and time in human readable form
 local function getTimeFull()
-    second, minute, hour, day, date, month, year = getTime()
+    local second, minute, hour, day, date, month, year = getTime()
     year = year+2000
     return string.format("%02d:%02d:%02d", hour, minute, second), getDay(day), string.format("%02d.%02d.%04d", date, month, year)
 end
@@ -71,6 +72,9 @@ end
 local function setTimeFull(hour, minute, second, day, date, month, year)
     if type(day) == string then
         day = getDay(day)
+    end
+    if string.len(tostring(year)) == 4 then
+        year = year-2000
     end
     i2c.start(id)
     i2c.address(id, dev_addr, i2c.TRANSMITTER)
@@ -92,24 +96,44 @@ local function setTimeDate(...)
     -- combination of both should also work
     --if arg[n] == 0 then return nil end
     --function f(...) for k,v in ipairs(arg) do print(k,v) end end
-    for k,v in ipairs(arg) do
-        
+    
+    s = "hello world from Lua"
+    for w in string.gmatch(s, "%a+") do
+        print(w)
     end
+    
 end
 ]]--
-local function setTime(hour, minute, second)
-
+local function setTime(h, m, ...)
+    local second, minute, hour, day, date, month, year = getTime()
+    if #arg == 0 then -- only hour and minute given
+        hour = h
+        minute = m
+    elseif #arg == 1 then -- hour, minute, seconds given
+        hour = h
+        minute = m
+        second = arg[1]
+    else
+        print("Wrong time format")
+        return nil
+    end
+    setTimeFull(hour, minute, second, day, date, month, year)
 end
 
-local function setDate(day, month, year)
-
+local function setDate(d, m, y)
+    local second, minute, hour, day, date, month, year = getTime()
+    if string.len(tostring(y)) == 2 then
+        y = y+2000
+    end
+    setTimeFull(second, minute, hour, day, d, m, y)
 end
-
 -- Return module table
 M = {
     setup = setup,
     setTimeFull = setTimeFull,
     getTime = getTime,
-    getTimeFull = getTimeFull
+    getTimeFull = getTimeFull, 
+    setDate = setDate, 
+    setTime = setTime
 }
 return M
