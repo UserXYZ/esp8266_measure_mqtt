@@ -12,7 +12,6 @@ end
 local function bcdToDec(val)
   return((((val/16) - ((val/16)%1)) *10) + (val%16))
 end
-
 -- initialize RTC
 local function setup(sda, scl, addr)
     if sda~=nil and scl~=nil and addr~=nil then
