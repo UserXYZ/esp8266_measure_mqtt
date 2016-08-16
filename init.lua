@@ -55,7 +55,7 @@ tmr.alarm(1, 5000, tmr.ALARM_AUTO, function()
     if ip == nil and joinCounter < joinMaxAttempts then
 	    local msg="Connecting to WiFi Access Point..."
 	    print(msg)
-	    if conf.misc.use_display then
+	    if conf.display.use then
 	        display.disp_stat(msg)
 	    end
 	    joinCounter = joinCounter +1
@@ -63,13 +63,13 @@ tmr.alarm(1, 5000, tmr.ALARM_AUTO, function()
 	    if joinCounter == joinMaxAttempts then
 	        local msg="Failed to connect to WiFi Access Point"
 	        print(msg)
-	        if conf.misc.use_display then
+	        if conf.display.use then
 		        display.disp_stat(msg)
 	        end
 	    else
 	        local msg="Got IP: "..ip
 	        print(msg)
-	        if conf.misc.use_display then
+	        if conf.display.use then
 		        display.disp_stat(msg)
 	        end
 	        print('heap: ',node.heap())
