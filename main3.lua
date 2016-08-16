@@ -11,11 +11,11 @@ if conf.display.use then
 end
 -- get DST
 local tz=0
-local cnt=0
 local got_dst=false
 local ntp=require("myNtpTime")
 tmr.wdclr()
 tmr.alarm(4,5000,tmr.ALARM_AUTO,function()
+    local cnt=0
 	local dst=require("getDST")
 	local msg=print("Trying to get DST for "..conf.misc.zone)
 	print(msg)
@@ -63,7 +63,6 @@ tmr.alarm(4,5000,tmr.ALARM_AUTO,function()
 	collectgarbage()
 end)
 -- get start time
---local ntp=require("myNtpTime")
 local d=require("dns")
 d.resolveIP("pool.ntp.org",function(r)
     if r then
@@ -86,7 +85,7 @@ tmr.wdclr()
 tmr.alarm(5,conf.misc.ntpsleep*1000,tmr.ALARM_AUTO,function()
 	local d=require("dns")
 	d.resolveIP("pool.ntp.org",function(r)
-	    if r then
+        if r then
 		    ntp.sync(r,tz,function(tm)
 		        if tm then
 			        local msg="NTP time sync at: "..tm
@@ -128,7 +127,7 @@ tmr.alarm(6, delay,tmr.ALARM_AUTO,function()
     if conf.sens.ds_enable then
 	    local dstemp=require("myds3")
 	    ds_table={}
-	    print("Starting measurement with DS18B20")
+	    if conf.misc.debug then print("Starting measurement with DS18B20") end
 	    dstemp.readT(conf.misc.ds_pin,function(r)
     	    for k,v in pairs(r) do
        		    ds_table[k]=v
@@ -140,7 +139,7 @@ tmr.alarm(6, delay,tmr.ALARM_AUTO,function()
     end
 -- start DHT22 measuring and putting results into its global table
     if conf.sens.dht_enable then
-	    print("Starting measurement with DHT22")
+	    if conf.misc.debug then print("Starting measurement with DHT22") end
 	    local status,temp,humi,temp_decimal,humi_decimal = dht.read(conf.sens.dht_pin)
 	    if( status == dht.OK ) then
 		    dht_table = {string.format("%.1f",temp),string.format("%.1f",humi)}
@@ -152,7 +151,7 @@ tmr.alarm(6, delay,tmr.ALARM_AUTO,function()
     end
 -- start BMP180 measuring and putting results into its global table
     if conf.sens.bmp_enable then
-	    print("Starting measurement with BMP180")
+	    if conf.misc.debug then print("Starting measurement with BMP180") end
 	    bmp085.init(conf.sens.bmp_sda,conf.sens.bmp_scl)
 	    local t=string.format("%.1f",bmp085.temperature()/10)
 	    local p=string.format("%.1f",bmp085.pressure(3)/100)
