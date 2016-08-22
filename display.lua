@@ -1,25 +1,39 @@
 local M = {}
 local disp=nil
---[[
+local conf = require("config")
+
 local function setup()
-    local cs  = 8 -- GPIO15, pull-down 10k to GND
-    local dc  = 1 -- GPIO5
-    local res = 0 -- GPIO16
-    spi.setup(1, spi.MASTER, spi.CPOL_LOW, spi.CPHA_LOW, 8, 8)
-    disp = u8g.pcd8544_84x48_hw_spi(cs, dc, res)
-end
-]]--
-local function setup(sda, scl, addr)
-    if sda~=nil and scl~=nil and addr~=nil then
-        if i2c.setup(0, sda, scl, i2c.SLOW) ~= 0 then
-            disp = u8g.ssd1306_128x64_i2c(addr)
-        else
+    if string.lower(conf.display.conn) == "i2c" then
+        if i2c.setup(0,conf.display.i2c_sda, conf.display.i2c_scl, i2c.SLOW) ~= 0 then
+            if conf.display.type == "sh1106" then
+                disp = u8g.sh1106_128x64_i2c(conf.display.i2c_addr)
+                if disp ~= nil then
+                    return true
+                else
+                    return nil
+                end
+            elseif conf.display.type == "ssd1306" then
+                disp = u8g.ssd1306_128x64_i2c(conf.display.i2c_addr)
+                if disp ~= nil then
+                    return true
+                else
+                    return nil
+                end
+            else -- display type not known
+                return nil
+            end
+        else -- i2c setup failed
             return nil
         end
-    else
-        print("Wrong display parameters!")
+    --elseif string.lower(conf.display.conn) ~= "spi" then
+    --    spi.setup(1, spi.MASTER, spi.CPOL_LOW, spi.CPHA_LOW, 8, 8)
+    --    disp = u8g.pcd8544_84x48_hw_spi(conf.display.spi_cs, dc, res)
+    --    display.setup(conf.display.spi_miso, conf.display.spi_mosi, conf.display.spi_cs, conf.display.spi_clk)
+    else -- not i2c nor spi display connection
+        print("Wrong type of display selected")
+        return nil
     end
-end    
+end
 -- clear screen
 local function cls()
     disp:begin()
