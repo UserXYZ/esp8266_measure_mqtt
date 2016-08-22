@@ -30,24 +30,19 @@ collectgarbage()
 --set display parameters and initialize if display is in use
 if conf.display.use then
     display = require("display")
-    if string.lower(conf.display.type) == "i2c" then
-        display.setup(conf.display.i2c_sda, conf.display.i2c_scl, conf.display.i2c_addr)
-    elseif string.lower(conf.display.type) ~= "spi" then
-        display.setup(conf.display.spi_miso, conf.display.spi_mosi, conf.display.spi_cs, conf.display.spi_clk)
-    else
-        print("Wrong type of display selected")
-        display = nil
+    if display.setup() == nil then -- display setup failed
+        print("Display setup failed")
         package.loaded["display"] = nil
         conf.display.use = false
         collectgarbage()
     end
 end
-
+-- clear screen
 if conf.display.use then
     display.cls()
     display.disp_stat("Booting...")
 end
-
+-- connect to wifi ap
 local joinCounter = 0
 local joinMaxAttempts = 20
 tmr.alarm(1, 5000, tmr.ALARM_AUTO, function()
@@ -75,8 +70,8 @@ tmr.alarm(1, 5000, tmr.ALARM_AUTO, function()
 	        print('heap: ',node.heap())
          -- Uncomment to automatically start everything
             --dofile("telnet.lc")
-	        dofile("main3.lc")
-	        dofile("button.lc")
+	         dofile("main3.lc")
+	         dofile("button.lc")
 	    end
 	    tmr.stop(1)
         tmr.unregister(1)
