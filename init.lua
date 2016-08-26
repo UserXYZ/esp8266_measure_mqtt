@@ -1,82 +1,30 @@
--- prepare files
-local compileAndRemoveIfNeeded = function(f)
-    if file.open(f) then
-	    file.close()
-	    print('Compiling:', f)
-	    node.compile(f)
-	    file.remove(f)
-	    collectgarbage()
+function abortInit()
+    -- initailize abort boolean flag
+    abort = false
+    print("Press ENTER within 5s to abort startup")
+    -- if <CR> is pressed, call abortTest
+    uart.on("data", "\r", abortTest, 0)
+    -- start timer to execute startup function in 5 seconds
+    tmr.alarm(2, 5000, tmr.ALARM_SINGLE, startup)
     end
-end
--- main()
-local serverFiles = {'dns.lua', 'telnet.lua','main3.lua','message3.lua', 'myds3.lua', 'myNtpTime.lua', 'getDST.lua', 'myemoncms.lua', 'button.lua', 'display.lua', 'ds1307.lua'}
-for i, f in ipairs(serverFiles) do
-    compileAndRemoveIfNeeded(f)
+    
+function abortTest(data)
+    -- user requested abort
+    abort = true
+    -- turns off uart scanning
+    uart.on("data")
 end
 
-compileAndRemoveIfNeeded = nil
-serverFiles = nil
-collectgarbage()
--- start configuration
-local conf = require("config")
-local wifiConfig = {}
-wifiConfig.mode = wifi.STATION
-wifiConfig.stationPointConfig = {}
+function startup()
+    uart.on("data") -- if user requested abort, exit
+    if abort == true then
+        print("Startup aborted")
+        return
+    end
+    -- otherwise, start up
+    tmr.unregister(2)
+    print("Starting main program")
+    dofile("startup.lc")
+end
 
-wifi.setmode(wifiConfig.mode)
-wifi.sta.config(conf.wlan.ssid, conf.wlan.pwd)
-wifiConfig = nil
-collectgarbage()
---set display parameters and initialize if display is in use
-if conf.display.use then
-    display = require("display")
-    if display.setup() == nil then -- display setup failed
-        print("Display setup failed")
-        package.loaded["display"] = nil
-        conf.display.use = false
-        collectgarbage()
-    end
-end
--- clear screen
-if conf.display.use then
-    display.cls()
-    display.disp_stat("Booting...")
-end
--- connect to wifi ap
-local joinCounter = 0
-local joinMaxAttempts = 20
-tmr.alarm(1, 5000, tmr.ALARM_AUTO, function()
-    local ip = wifi.sta.getip()
-    if ip == nil and joinCounter < joinMaxAttempts then
-	    local msg="Connecting to WiFi Access Point..."
-	    print(msg)
-	    if conf.display.use then
-	        display.disp_stat(msg)
-	    end
-	    joinCounter = joinCounter +1
-    else
-	    if joinCounter == joinMaxAttempts then
-	        local msg="Failed to connect to WiFi Access Point"
-	        print(msg)
-	        if conf.display.use then
-		        display.disp_stat(msg)
-	        end
-	    else
-	        local msg="Got IP: "..ip
-	        print(msg)
-	        if conf.display.use then
-		        display.disp_stat(msg)
-	        end
-	        print('heap: ',node.heap())
-         -- Uncomment to automatically start everything
-            --dofile("telnet.lc")
-	         dofile("main3.lc")
-	         dofile("button.lc")
-	    end
-	    tmr.stop(1)
-        tmr.unregister(1)
-	    joinCounter = nil
-	    joinMaxAttempts = nil
-	    collectgarbage()
-    end
-end)
+tmr.alarm(2, 1000, tmr.ALARM_SINGLE, abortInit) -- call abortInit after 1s
