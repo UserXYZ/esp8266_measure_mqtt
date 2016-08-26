@@ -9,7 +9,7 @@ local compileAndRemoveIfNeeded = function(f)
     end
 end
 -- main()
-local serverFiles = {'dns.lua', 'telnet.lua','main3.lua','message3.lua', 'myds3.lua', 'myNtpTime.lua', 'getDST.lua', 'myemoncms.lua', 'button.lua', 'display.lua', 'ds1307.lua'}
+local serverFiles = {'dns.lua', 'telnet.lua','main3.lua','message3.lua', 'myds3.lua', 'myNtpTime.lua', 'getDST.lua', 'myemoncms.lua', 'button.lua', 'display.lua', 'ds1307.lua', 'startup.lua', 'display2.lua', 'display_drv.lua'}
 for i, f in ipairs(serverFiles) do
     compileAndRemoveIfNeeded(f)
 end
