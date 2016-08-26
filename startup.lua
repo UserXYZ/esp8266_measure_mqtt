@@ -29,22 +29,22 @@ wifiConfig = nil
 collectgarbage()
 --set display parameters and initialize if display is in use
 if conf.display.use then
-    display = require("display")
+    disp = require("display_drv")
     if display.setup() == nil then -- display setup failed
         print("Display setup failed")
-        display = nil
-        package.loaded["display"] = nil
+        disp = nil
+        package.loaded["display_drv"] = nil
+        package.loaded["display2"] = nil
         conf.display.use = false
         collectgarbage()
+    else -- display initialization ok
+	display = require("display2")
     end
 end
 -- clear screen
 if conf.display.use then
     display.cls()
     display.disp_stat("Booting...")
---    display = nil
---    package.loaded["display"] = nil
---    collectgarbage()
 end
 -- connect to wifi ap
 local joinCounter = 0
@@ -55,11 +55,7 @@ tmr.alarm(1, 5000, tmr.ALARM_AUTO, function()
 	    local msg="Connecting to WiFi Access Point..."
 	    print(msg)
 	    if conf.display.use then
---            display = require("display")
 	        display.disp_stat(msg)
---            display = nil
---            package.loaded["display"] = nil
---            collectgarbage()
 	    end
 	    joinCounter = joinCounter +1
     else
@@ -67,43 +63,16 @@ tmr.alarm(1, 5000, tmr.ALARM_AUTO, function()
 	        local msg="Failed to connect to WiFi Access Point"
 	        print(msg)
 	        if conf.display.use then
---                display = require("display")
 		        display.disp_stat(msg)
---                display = nil
---                package.loaded["display"] = nil
---                collectgarbage()
 	        end
 	    else
 	        local msg="Got IP: "..ip
 	        print(msg)
 	        if conf.display.use then
---                display = require("display")
 		        display.disp_stat(msg)
---                display = nil
---                package.loaded["display"] = nil
---                collectgarbage()
 	        end
 	        print('heap: ',node.heap())
-         -- Uncomment to automatically start everything
---[[
-            tmr.alarm(2, 5000, tmr.ALARM_SINGLE, function()
-                run = true
-                print("Do you want to cancel the startup? Y/N")
-                node.input(inp)
-                if string.lower(inp) == "y" then
-                    print ("Startup cancelled")
-                    tmr.stop(2)
-                    tmr.stop(1)
-                    tmr.unregister(2)
-                    tmr.unregister(1)
-                end
-                else
-                    --dofile("telnet.lc")
-                    --dofile("main3.lc")
-                    --dofile("button.lc")
-                    print("start")
-            end)
-]]--
+
             --dofile("telnet.lc")
             dofile("main3.lc")
             dofile("button.lc")            
