@@ -9,6 +9,26 @@ local conf = require("config")
 if conf.display.use then
     disp_data={}
 end
+
+function writeout(msg, out)
+    print(msg)
+    if conf.display.use then
+	if package.loaded["display2"] == nil then
+	    display = require("display2")
+	end
+	if out == 2 then -- stderr like, status display
+	    display.disp_stat(msg)
+	elseif out == 1 then -- stdout like, data display
+	    display.disp_data(msg)
+	else
+	    return
+	end
+	package.loaded["display2"] = nil
+	display = nil
+	collectgarbage()
+    end
+end
+
 -- get DST
 local tz=0
 local got_dst=false
@@ -169,56 +189,56 @@ collectgarbage()
 	-- send ds18b20 data
 	if conf.sens.ds_enable then
 		for a,b in pairs(ds_table) do
-			local json=nil
-			local val=string.format("%.1f",b)
+			local json = nil
+			local val = string.format("%.1f", b)
             if conf.display.use then
-                table.insert(disp_data,{a,"T",tostring(val)..string.char(176).."C"})
+                table.insert(disp_data,{a, "T", tostring(val)..string.char(176).."C"})
             end
 			if conf.mqtt.use then -- send to mqtt broker
-				local t=ntp.getTime(tz)
-				json=cjson.encode({time=t, sensor=a, ds_temp=val})
+				local t = ntp.getTime(tz)
+				json = cjson.encode({time=t, sensor=a, ds_temp=val})
 				mq.msgSend(client, conf.mqtt.topic.."/sensors/ds18b20", json)
 			end
 			if conf.emon.use then -- send to emoncms
-				json=cjson.encode({sensor=a, ds_temp=val})
+				json = cjson.encode({sensor = a, ds_temp = val})
 				emon.send(json)
 			end
 		end
-		ds_table=nil
+		ds_table = nil
 	end
 	-- send dht22 data
 	if conf.sens.dht_enable then
             if conf.display.use then
-                table.insert(disp_data,{"DHT22","T",tostring(dht_table[1])..string.char(176).."C","Hum",tostring(dht_table[2]).."%"})
+                table.insert(disp_data, {"DHT22", "T", tostring(dht_table[1])..string.char(176).."C", "Hum", tostring(dht_table[2]).."%"})
             end
-			local json=nil
+			local json = nil
 			if conf.mqtt.use then -- send to mqtt broker
-				local t=ntp.getTime(tz)
-				json=cjson.encode({time=t, dht_temp=dht_table[1], humidity=dht_table[2]})
+				local t = ntp.getTime(tz)
+				json = cjson.encode({time = t, dht_temp = dht_table[1], humidity = dht_table[2]})
 				mq.msgSend(client, conf.mqtt.topic.."/sensors/dht22", json)
 			end
 			if conf.emon.use then -- send to emoncms
-				json=cjson.encode({dht_temp=dht_table[1], humidity=dht_table[2]})
+				json = cjson.encode({dht_temp = dht_table[1], humidity = dht_table[2]})
 				emon.send(json)
 			end
-			dht_table=nil
+			dht_table = nil
 	end
 	-- send bmp180 data
 	if conf.sens.bmp_enable then
             if conf.display.use then
-                table.insert(disp_data,{"BMP180","T",tostring(bmp_table[1])..string.char(176).."C","P",tostring(bmp_table[2]).."mBar"})
+                table.insert(disp_data, {"BMP180", "T", tostring(bmp_table[1])..string.char(176).."C", "P", tostring(bmp_table[2]).."mBar"})
             end
-			local json=nil
-			local t=ntp.getTime(tz)
+			local json = nil
+			local t = ntp.getTime(tz)
 			if conf.mqtt.use then -- send to mqtt broker
-				json=cjson.encode({time=t, bmp_temp=bmp_table[1], pressure=bmp_table[2], alt=bmp_table[3]})
+				json = cjson.encode({time = t, bmp_temp = bmp_table[1], pressure = bmp_table[2], alt = bmp_table[3]})
 				mq.msgSend(client, conf.mqtt.topic.."/sensors/bmp180", json)
 			end
 			if conf.emon.use then -- send to emoncms
-				json=cjson.encode({bmp_temp=bmp_table[1], pressure=bmp_table[2], alt=bmp_table[3]})
+				json = cjson.encode({bmp_temp = bmp_table[1], pressure = bmp_table[2], alt = bmp_table[3]})
 				emon.send(json)
 			end
-			bmp_table=nil
+			bmp_table = nil
 	end
 -- clean all temporary data structures
 	collectgarbage()
@@ -226,20 +246,20 @@ collectgarbage()
 end) -- end timer
 -- start timer for data display, if display is enabled
 if conf.display.use then
-    local num=0
-    local nrec=1
+    local num = 0
+    local nrec = 1
     tmr.wdclr()
     tmr.alarm(3, conf.display.timeout*1000, tmr.ALARM_AUTO, function()
         for i in pairs(disp_data) do
-            if disp_data[i]~=nil then num=num+1 end
+            if disp_data[i] ~= nil then num = num + 1 end
         end
-        if num>0 then
-            if nrec<=num then
+        if num > 0 then
+            if nrec <= num then
                 for i in pairs(disp_data[nrec]) do
                     display.disp_data(disp_data[nrec])
                 end
-                nrec=nrec+1
-                if nrec>num then nrec=1 end
+                nrec = nrec + 1
+                if nrec > num then nrec = 1 end
             end
         end
         num=0
