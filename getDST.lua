@@ -49,10 +49,7 @@ local function getDST(cb)
             conn:close()
             conn=nil
             collectgarbage()
-            local msg="DNS can't resolve DST server"..host
-            if conf.display.use then
-        	    display.disp_stat(msg)
-    	    end
+            printout("DNS can't resolve DST server"..host, 2)
             cb(msg)
         end
     end)

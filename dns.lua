@@ -12,11 +12,7 @@ local function resolveIP(host,cb)
         if ip then
             cb(ip)
         else
-    	    local msg="DNS query failed for "..host
-            print(msg)
-            if conf.display.use then
-        	    display.disp_stat(msg)
-    	    end
+            printout("DNS query failed for "..host, 2)
             cb(nil)
         end
         conn:close()

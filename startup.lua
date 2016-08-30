@@ -27,10 +27,31 @@ wifi.setmode(wifiConfig.mode)
 wifi.sta.config(conf.wlan.ssid, conf.wlan.pwd)
 wifiConfig = nil
 collectgarbage()
+
+-- print message to console and display, if enabled
+function printout(msg, out)
+    print(msg)
+    if conf.display.use then
+	if package.loaded["display2"] == nil then
+	    display = require("display2")
+	end
+	if out == 2 then -- stderr like, status display
+	    display.disp_stat(msg)
+	elseif out == 1 then -- stdout like, data display
+	    display.disp_data(msg)
+	else
+	    return
+	end
+	package.loaded["display2"] = nil
+	display = nil
+	collectgarbage()
+    end
+end
+
 --set display parameters and initialize if display is in use
 if conf.display.use then
     disp = require("display_drv")
-    if display.setup() == nil then -- display setup failed
+    if disp.setup() == nil then -- display setup failed
         print("Display setup failed")
         disp = nil
         package.loaded["display_drv"] = nil
@@ -52,33 +73,20 @@ local joinMaxAttempts = 20
 tmr.alarm(1, 5000, tmr.ALARM_AUTO, function()
     local ip = wifi.sta.getip()
     if ip == nil and joinCounter < joinMaxAttempts then
-	    local msg="Connecting to WiFi Access Point..."
-	    print(msg)
-	    if conf.display.use then
-	        display.disp_stat(msg)
-	    end
+	    printout("Connecting to WiFi Access Point...", 2)
 	    joinCounter = joinCounter +1
     else
 	    if joinCounter == joinMaxAttempts then
-	        local msg="Failed to connect to WiFi Access Point"
-	        print(msg)
-	        if conf.display.use then
-		        display.disp_stat(msg)
-	        end
+	        printout("Failed to connect to WiFi Access Point", 2)
 	    else
-	        local msg="Got IP: "..ip
-	        print(msg)
-	        if conf.display.use then
-		        display.disp_stat(msg)
-	        end
-	        print('heap: ',node.heap())
-
+	        printout("Got IP: "..ip, 2)
+	        print('heap: ', node.heap())
             --dofile("telnet.lc")
             dofile("main3.lc")
-            dofile("button.lc")            
+            dofile("button.lc")
 	    end
 	    tmr.stop(1)
-        tmr.unregister(1)
+	    tmr.unregister(1)
 	    joinCounter = nil
 	    joinMaxAttempts = nil
 	    collectgarbage()

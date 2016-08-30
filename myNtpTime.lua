@@ -27,11 +27,7 @@ local function sync(ntpsrv,tz,cb)
         end
     end,
     function()
-	local msg="NTP sync failed!"
-        print(msg)
-        if conf.disp.use then
-		    display.disp_stat(msg)
-	    end
+        printout("NTP sync failed!", 2)
         cb(nil)
     end)
 end

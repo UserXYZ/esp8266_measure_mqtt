@@ -10,103 +10,60 @@ if conf.display.use then
     disp_data={}
 end
 
-function writeout(msg, out)
-    print(msg)
-    if conf.display.use then
-	if package.loaded["display2"] == nil then
-	    display = require("display2")
-	end
-	if out == 2 then -- stderr like, status display
-	    display.disp_stat(msg)
-	elseif out == 1 then -- stdout like, data display
-	    display.disp_data(msg)
-	else
-	    return
-	end
-	package.loaded["display2"] = nil
-	display = nil
-	collectgarbage()
-    end
-end
-
 -- get DST
-local tz=0
-local got_dst=false
-local ntp=require("myNtpTime")
+local tz = 0
+local got_dst = false
+local ntp = require("myNtpTime")
 tmr.wdclr()
-tmr.alarm(4,5000,tmr.ALARM_AUTO,function()
-    local cnt=0
-	local dst=require("getDST")
-	local msg=print("Trying to get DST for "..conf.misc.zone)
-	print(msg)
-	if conf.display.use then
-		display.disp_stat(msg)
-	end
+tmr.alarm(4, 5000, tmr.ALARM_AUTO, function()
+    local cnt = 0
+	local dst = require("getDST")
+	printout("Trying to get DST for "..conf.misc.zone, 2)
 	dst.getDST(function (p)
-		cnt=cnt+1
+		cnt = cnt+1
 		if cnt == 5 then
-			msg="Error getting DST, using default value of 0 (same as UTC)..."
-			print(msg)
-			if conf.display.use then
-			    display.disp_stat(msg)
-			end
-			tz=0
+			printout("Error getting DST, using default value of 0 (same as UTC)...", 2)
+			tz = 0
 			tmr.stop(4)
 			tmr.unregister(4)
-			cnt=nil
-			got_dst=true
+			cnt = nil
+			got_dst = true
 		end
 		if type(p) == "string" then
 		    print ("Error: "..p)
 		else
-		    tz=p
-		    msg="Got DST: "..tz.."h. Time is now: "..ntp.getTime(tz)
-		    print(msg)
-		    if conf.display.use then
-			    display.disp_stat(msg)
-		    end
+		    tz = p
+		    print("Got DST: "..tz.."h. Time is now: "..ntp.getTime(tz), 2)
 		    tmr.stop(4)
 		    tmr.unregister(4)
-		    cnt=nil
-		    got_dst=true
+		    cnt = nil
+		    got_dst = true
 		end
 	end)
-	dst=nil
+	dst = nil
 	package.loaded["getDST"] = nil
 	collectgarbage()
 end)
 -- get start time
-local d=require("dns")
+local d = require("dns")
 d.resolveIP("pool.ntp.org",function(r)
     if r then
-        ntp.sync(r,tz,function(tm)
-            if tm then
-        	    local msg="Start time is: "..tm
-        	    print(msg)
-        	    if conf.display.use then
-		            display.disp_stat(msg)
-		        end
-    	    end
+        ntp.sync(r, tz, function(tm)
+            if tm then printout("Start time is: "..tm, 2) end
         end)
     end
 end)
-d=nil
+d = nil
 package.loaded["dns"] = nil
 collectgarbage()
 -- start ntp polling
 tmr.wdclr()
-tmr.alarm(5,conf.misc.ntpsleep*1000,tmr.ALARM_AUTO,function()
-	local d=require("dns")
+tmr.alarm(5, conf.misc.ntpsleep*1000, tmr.ALARM_AUTO, function()
+	local d = require("dns")
 	d.resolveIP("pool.ntp.org",function(r)
         if r then
-		    ntp.sync(r,tz,function(tm)
-		        if tm then
-			        local msg="NTP time sync at: "..tm
-			        print(msg)
-			        if conf.display.use then
-			            display.disp_stat(msg)
-			        end
-		        end
+		    ntp.sync(r, tz, function(tm)
+		        if tm then printout("NTP time sync at: "..tm, 2) end
 		    end)
 	    end
 	end)
@@ -116,46 +73,42 @@ tmr.alarm(5,conf.misc.ntpsleep*1000,tmr.ALARM_AUTO,function()
 end)
 -- connect to mqtt broker
 if conf.mqtt.use then
-	mq=require("message3")
-	client=mq.setup()
+	mq = require("message3")
+	client = mq.setup()
 end
 if conf.emon.use then
-	emon=require("myemoncms")
+	emon = require("myemoncms")
 end
 -- start measurement and data sending
-local delay=conf.misc.delay*1000
+local delay = conf.misc.delay*1000
 if delay < 60000 or delay > 3600000 then
 	print("Measurement timeout out of bounds, defaulting to 60s")
-	delay=60000
+	delay = 60000
 else
-	local msg="Starting measurement every "..conf.misc.delay.." second(s)"
-	print(msg)
-	if conf.display.use then
-	    display.disp_stat(msg)
-	end
+	print("Starting measurement every "..conf.misc.delay.." second(s)", 2)
 end
 tmr.wdclr()
-tmr.alarm(6, delay,tmr.ALARM_AUTO,function()
+tmr.alarm(6, delay, tmr.ALARM_AUTO, function()
 -- start DS18B20 measuring and putting results into its global table
     if conf.sens.ds_enable then
-	    local dstemp=require("myds3")
-	    ds_table={}
+	    local dstemp = require("myds3")
+	    ds_table = {}
 	    if conf.misc.debug then print("Starting measurement with DS18B20") end
-	    dstemp.readT(conf.misc.ds_pin,function(r)
-    	    for k,v in pairs(r) do
-       		    ds_table[k]=v
+	    dstemp.readT(conf.misc.ds_pin, function(r)
+    	    for k, v in pairs(r) do
+       		    ds_table[k] = v
 		    end
 	    end)
-	    dstemp=nil
+	    dstemp = nil
 	    package.loaded["myds3"] = nil
 	    collectgarbage()
     end
 -- start DHT22 measuring and putting results into its global table
     if conf.sens.dht_enable then
 	    if conf.misc.debug then print("Starting measurement with DHT22") end
-	    local status,temp,humi,temp_decimal,humi_decimal = dht.read(conf.sens.dht_pin)
+	    local status, temp, humi, temp_decimal, humi_decimal = dht.read(conf.sens.dht_pin)
 	    if( status == dht.OK ) then
-		    dht_table = {string.format("%.1f",temp),string.format("%.1f",humi)}
+		    dht_table = {string.format("%.1f",temp), string.format("%.1f",humi)}
 	    elseif( status == dht.ERROR_CHECKSUM ) then
 		    print("DHT Checksum error.");
 	    elseif( status == dht.ERROR_TIMEOUT ) then
@@ -165,34 +118,34 @@ tmr.alarm(6, delay,tmr.ALARM_AUTO,function()
 -- start BMP180 measuring and putting results into its global table
     if conf.sens.bmp_enable then
 	    if conf.misc.debug then print("Starting measurement with BMP180") end
-	    bmp085.init(conf.sens.bmp_sda,conf.sens.bmp_scl)
-	    local t=string.format("%.1f",bmp085.temperature()/10)
-	    local p=string.format("%.1f",bmp085.pressure(3)/100)
-	    local al=string.format("%.1f",(bmp085.pressure(3)-101325)*843/10000)
-	    bmp_table = {t,p,al}
+	    bmp085.init(conf.sens.bmp_sda, conf.sens.bmp_scl)
+	    local t = string.format("%.1f", bmp085.temperature()/10)
+	    local p = string.format("%.1f", bmp085.pressure(3)/100)
+	    local al = string.format("%.1f", (bmp085.pressure(3)-101325)*843/10000)
+	    bmp_table = {t, p, al}
     end
 -- start sending data for all sensors
-    print("Sending data at:",ntp.getTime(tz))
---"T",tostring(25.8)..string.char(176).."C", "P", tostring(1002.3).."mBar"
+    print("Sending data at:", ntp.getTime(tz))
+-- "T",tostring(25.8)..string.char(176).."C", "P", tostring(1002.3).."mBar"
 -- stop display timer so it can read fresh data and clear display data table
     if conf.display.use then
         local running, mode = tmr.state(3)
         if running then
             tmr.stop(3)
-            for i=1,#disp_data do disp_data[i]=nil end
-            disp_data=nil
-            disp_data={}
+            for i = 1, #disp_data do disp_data[i] = nil end
+            disp_data = nil
+            disp_data = {}
         end
     end
 collectgarbage()
 -- start sending data
 	-- send ds18b20 data
 	if conf.sens.ds_enable then
-		for a,b in pairs(ds_table) do
+		for a, b in pairs(ds_table) do
 			local json = nil
 			local val = string.format("%.1f", b)
             if conf.display.use then
-                table.insert(disp_data,{a, "T", tostring(val)..string.char(176).."C"})
+                table.insert(disp_data, {a, "T", tostring(val)..string.char(176).."C"})
             end
 			if conf.mqtt.use then -- send to mqtt broker
 				local t = ntp.getTime(tz)
@@ -256,7 +209,7 @@ if conf.display.use then
         if num > 0 then
             if nrec <= num then
                 for i in pairs(disp_data[nrec]) do
-                    display.disp_data(disp_data[nrec])
+		    printout(disp_data[nrec], 1)
                 end
                 nrec = nrec + 1
                 if nrec > num then nrec = 1 end
