@@ -1,9 +1,6 @@
 local M = {}
 
 local conf = require("config")
-if conf.display.use then
-    display = require("display")
-end
 
 local function getTime(tz)
     local t, h, m, s

@@ -1,18 +1,18 @@
 local M = {}
-local disp = nil
+local d = nil
 local conf = require("config")
 
 local function setup()
     if string.lower(conf.display.conn) == "i2c" then
         if i2c.setup(0, conf.display.i2c_sda, conf.display.i2c_scl, i2c.SLOW) ~= 0 then
             if conf.display.type == "sh1106" then
-                disp = u8g.sh1106_128x64_i2c(conf.display.i2c_addr)
+                d = u8g.sh1106_128x64_i2c(conf.display.i2c_addr)
             elseif conf.display.type == "ssd1306" then
-                disp = u8g.ssd1306_128x64_i2c(conf.display.i2c_addr)
+                d = u8g.ssd1306_128x64_i2c(conf.display.i2c_addr)
             else -- display type not known
                 return nil
             end
-            return true
+            return d
         else -- i2c setup failed
             return nil
         end

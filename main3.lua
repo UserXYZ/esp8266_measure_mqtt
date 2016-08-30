@@ -33,7 +33,7 @@ tmr.alarm(4, 5000, tmr.ALARM_AUTO, function()
 		    print ("Error: "..p)
 		else
 		    tz = p
-		    print("Got DST: "..tz.."h. Time is now: "..ntp.getTime(tz), 2)
+		    printout("Got DST: "..tz.."h. Time is now: "..ntp.getTime(tz), 2)
 		    tmr.stop(4)
 		    tmr.unregister(4)
 		    cnt = nil
@@ -85,7 +85,7 @@ if delay < 60000 or delay > 3600000 then
 	print("Measurement timeout out of bounds, defaulting to 60s")
 	delay = 60000
 else
-	print("Starting measurement every "..conf.misc.delay.." second(s)", 2)
+	printout("Starting measurement every "..conf.misc.delay.." second(s)", 2)
 end
 tmr.wdclr()
 tmr.alarm(6, delay, tmr.ALARM_AUTO, function()

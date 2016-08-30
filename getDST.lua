@@ -4,10 +4,6 @@ local M = {}
 
 local conf = require("config")
 
-if conf.display.use then
-    display = require("display")
-end
-
 local function getDST(cb)
     if conf.misc.zone == "" then cb("No defined time zone in your config file!") end
 

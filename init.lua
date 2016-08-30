@@ -1,3 +1,23 @@
+-- prepare files
+local compileAndRemoveIfNeeded = function(f)
+    if file.open(f) then
+	    file.close()
+	    print('Compiling:', f)
+	    node.compile(f)
+	    file.remove(f)
+	    collectgarbage()
+    end
+end
+-- main()
+local serverFiles = {'dns.lua', 'telnet.lua', 'main3.lua', 'message3.lua', 'myds3.lua', 'myNtpTime.lua', 'getDST.lua', 'myemoncms.lua', 'button.lua', 'ds1307.lua', 'startup.lua', 'display2.lua', 'display_drv.lua'}
+
+function abortTest(data)
+    -- user requested abort
+    abort = true
+    -- turns off uart scanning
+    uart.on("data")
+end
+
 function abortInit()
     -- initailize abort boolean flag
     abort = false
@@ -6,13 +26,6 @@ function abortInit()
     uart.on("data", "\r", abortTest, 0)
     -- start timer to execute startup function in 5 seconds
     tmr.alarm(2, 5000, tmr.ALARM_SINGLE, startup)
-    end
-    
-function abortTest(data)
-    -- user requested abort
-    abort = true
-    -- turns off uart scanning
-    uart.on("data")
 end
 
 function startup()
@@ -23,6 +36,15 @@ function startup()
     end
     -- otherwise, start up
     tmr.unregister(2)
+    -- compile files
+    for i, f in ipairs(serverFiles) do
+	    compileAndRemoveIfNeeded(f)
+    end
+
+    compileAndRemoveIfNeeded = nil
+    serverFiles = nil
+    collectgarbage()
+    -- start now
     print("Starting main program")
     dofile("startup.lc")
 end

@@ -1,22 +1,3 @@
--- prepare files
-local compileAndRemoveIfNeeded = function(f)
-    if file.open(f) then
-	    file.close()
-	    print('Compiling:', f)
-	    node.compile(f)
-	    file.remove(f)
-	    collectgarbage()
-    end
-end
--- main()
-local serverFiles = {'dns.lua', 'telnet.lua', 'main3.lua', 'message3.lua', 'myds3.lua', 'myNtpTime.lua', 'getDST.lua', 'myemoncms.lua', 'button.lua', 'ds1307.lua', 'startup.lua', 'display2.lua', 'display_drv.lua'}
-for i, f in ipairs(serverFiles) do
-    compileAndRemoveIfNeeded(f)
-end
-
-compileAndRemoveIfNeeded = nil
-serverFiles = nil
-collectgarbage()
 -- start configuration
 local conf = require("config")
 local wifiConfig = {}
@@ -51,6 +32,7 @@ end
 --set display parameters and initialize if display is in use
 if conf.display.use then
     disp = require("display_drv")
+print("3")
     if disp.setup() == nil then -- display setup failed
         print("Display setup failed")
         disp = nil
@@ -62,11 +44,14 @@ if conf.display.use then
 	display = require("display2")
     end
 end
+print("6")
 -- clear screen
 if conf.display.use then
-    display.cls()
-    display.disp_stat("Booting...")
+print("7")
+    display.cls(disp)
+    display.disp_stat(disp, "Booting...")
 end
+
 -- connect to wifi ap
 local joinCounter = 0
 local joinMaxAttempts = 20
@@ -82,8 +67,8 @@ tmr.alarm(1, 5000, tmr.ALARM_AUTO, function()
 	        printout("Got IP: "..ip, 2)
 	        print('heap: ', node.heap())
             --dofile("telnet.lc")
-            dofile("main3.lc")
-            dofile("button.lc")
+            --dofile("main3.lc")
+            --dofile("button.lc")
 	    end
 	    tmr.stop(1)
 	    tmr.unregister(1)
