@@ -69,8 +69,8 @@ local function disp_stat(disp, msg)
     until disp:nextPage() == false
     tmr.delay(100000)
     tmr.wdclr()
-    d_txt = nil
-    collectgarbage()
+--    d_txt = nil
+--    collectgarbage()
 end
 -- display data from sensors
 local function disp_data(disp, data)

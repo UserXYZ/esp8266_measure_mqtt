@@ -63,7 +63,7 @@ tmr.alarm(5, conf.misc.ntpsleep*1000, tmr.ALARM_AUTO, function()
 	d.resolveIP("pool.ntp.org",function(r)
         if r then
 		    ntp.sync(r, tz, function(tm)
-		        if tm then printout("NTP time sync at: "..tm, 2) end
+		        if tm then print("NTP time sync at: "..tm) end
 		    end)
 	    end
 	end)
@@ -126,7 +126,6 @@ tmr.alarm(6, delay, tmr.ALARM_AUTO, function()
     end
 -- start sending data for all sensors
     print("Sending data at:", ntp.getTime(tz))
--- "T",tostring(25.8)..string.char(176).."C", "P", tostring(1002.3).."mBar"
 -- stop display timer so it can read fresh data and clear display data table
     if conf.display.use then
         local running, mode = tmr.state(3)
