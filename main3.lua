@@ -39,10 +39,23 @@ tmr.alarm(4, 5000, tmr.ALARM_AUTO, function()
 		    cnt = nil
 		    got_dst = true
 		end
+        if conf.misc.use_rtc and got_dst then -- we want rtc
+            local rtc = require("ds1307")
+            if rtc.setup(conf.misc.rtc_sda, conf.misc.rtc_scl, conf.misc.rtc_addr) then -- rtc setup ok
+                local t = {}
+                for i in string.gmatch(ntp.getTime(tz), "%d+") do table.insert(t, tonumber(i)) end
+                rtc.setTime(t[1], t[2], t[3])
+                t = nil
+                package.loaded["ds1307"] = nil
+                collectgarbage()
+print("out")
+            end
+        end
+
+        dst = nil
+        package.loaded["getDST"] = nil
+        collectgarbage()
 	end)
-	dst = nil
-	package.loaded["getDST"] = nil
-	collectgarbage()
 end)
 -- get start time
 local d = require("dns")

@@ -18,18 +18,19 @@ local function setup(sda, scl, addr)
         if (i2c.setup(id, sda, scl, i2c.SLOW)) ~= 0 then
             print("RTC configured")
             dev_addr = addr
+            return true
         else
             print("RTC config failed!")
-            return nil
         end
     else
         print("Wrong RTC parameters!")
     end
+    return nil
 end
 -- translate day number to text date or vice versa
 local function getDay(day)
     local days = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}
-    if type(day) == "number" and day<8 and day>0 then
+    if type(day) == "number" and day < 8 and day > 0 then
         return days[day]
     elseif type(day) == "string" then
         for k,v in ipairs(days) do
@@ -103,6 +104,12 @@ local function setTimeDate(...)
     
 end
 ]]--
+
+local function setTime(h, m, s)
+    local second, minute, hour, day, date, month, year = getTime()
+    setTimeFull(hour, minute, second, day, date, month, year)
+end
+--[[
 local function setTime(h, m, ...)
     local second, minute, hour, day, date, month, year = getTime()
     if #arg == 0 then -- only hour and minute given
@@ -118,7 +125,7 @@ local function setTime(h, m, ...)
     end
     setTimeFull(hour, minute, second, day, date, month, year)
 end
-
+]]--
 local function setDate(d, m, y)
     local second, minute, hour, day, date, month, year = getTime()
     if string.len(tostring(y)) == 2 then
