@@ -55,6 +55,11 @@ sens.bmp_enable = false
 sens.bmp_sda = 5 -- I2C sda pin
 sens.bmp_scl = 6 -- I2C scl pin
 sens.bmp_wait = 60 -- measuring rate in seconds
+-- BME280 temperature and pressure sensor
+sens.bme_enable = false
+sens.bme_sda = 5 -- I2C sda pin
+sens.bme_scl = 6 -- I2C scl pin
+sens.bme_wait = 60 -- measuring rate in seconds
 conf.sens = sens
 -- mqtt settings
 local mqtt = {}
