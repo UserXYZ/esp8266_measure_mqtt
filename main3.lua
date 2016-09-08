@@ -155,6 +155,25 @@ tmr.alarm(6, delay, tmr.ALARM_AUTO, function()
 	    local al = string.format("%.1f", (bmp085.pressure(3)-101325)*843/10000)
 	    bmp_table = {t, p, al}
     end
+-- start BME280 measuring and putting results into its global table
+    if conf.sens.bme_enable then
+	    if conf.misc.debug then print("Starting measurement with BME280") end
+	    local i = bme280.init(conf.sens.bme_sda, conf.sens.bme_scl)
+	    if i == 2 then -- sensor found, it is BME280
+		local H, T, P, D = nil
+		H, T = bme280.humi()
+		local h, t = string.format("%.1f", H/1000), string.format("%.1f", T/100)
+		P, T = bme280.baro()
+		local p = string.format("%.1f", P/1000)
+		-- local al = string.format("%.1f", (P-101325)*843/10000) -- calculated as for bmp180
+		D = bme280.dewpoint(H, T)
+		local d = string.format("%.1f", D/100)
+		-- bme_table = {h, t, p, al, d} -- humidity, temperature, pressure, altitude, dewpoint
+		bme_table = {h, t, p, d} -- humidity, temperature, pressure, dewpoint
+	    else
+		print("BME280 not found.")
+	    end
+    end
 -- start sending data for all sensors
     -- print("Sending data at:", ntp.getTime(tz))
     print("Sending data at:", getTime())
@@ -226,6 +245,24 @@ collectgarbage()
 				emon.send(json)
 			end
 			bmp_table = nil
+	end
+	-- send bme280 data
+	if conf.sens.bme_enable then
+            if conf.display.use then
+                table.insert(disp_data, {"BME280", "T", tostring(bme_table[1])..string.char(176).."C", "P", tostring(bme_table[2]).."mBar"})
+            end
+			local json = nil
+			-- local t = ntp.getTime(tz)
+			local t = getTime()
+			if conf.mqtt.use then -- send to mqtt broker
+				json = cjson.encode({time = t, humi = bme_table[1], temp = bme_table[2], pressure = bme_table[3], dew = bme_table[4]})
+				mq.msgSend(client, conf.mqtt.topic.."/sensors/bme280", json)
+			end
+			if conf.emon.use then -- send to emoncms
+				json = cjson.encode({humi = bme_table[1], temp = bme_table[2], pressure = bme_table[2], dew = bme_table[3]})
+				emon.send(json)
+			end
+			bme_table = nil
 	end
 -- clean all temporary data structures
 	collectgarbage()
