@@ -9,10 +9,30 @@ local conf = require("config")
 if conf.display.use then
     disp_data={}
 end
-
--- get DST
 local tz = 0
 local got_dst = false
+-- get time from ntp or rtc
+function getTime()
+    local rtc = nil
+    if conf.misc.use_rtc then -- we chose to use rtc for all time readings
+        if package.loaded["ds1307"] == nil then
+	        rtc = require("ds1307")
+	    end
+	    -- if rtc.setup(conf.misc.rtc_sda, conf.misc.rtc_scl, conf.misc.rtc_addr) then -- rtc setup ok
+		local s, m, h = rtc.getTime()
+        t = string.format("%02d:%02d:%02d", h, m, s)
+        if t then
+		    package.loaded["ds1307"] = nil
+		    collectgarbage()
+	    else
+	        t = ntp.getTime(tz)
+	    end
+    else -- we don't have/won't use rtc, use ntp query
+	    t = ntp.getTime(tz)
+    end
+    return t
+end
+-- get DST
 local ntp = require("myNtpTime")
 tmr.wdclr()
 tmr.alarm(4, 5000, tmr.ALARM_AUTO, function()
@@ -41,17 +61,15 @@ tmr.alarm(4, 5000, tmr.ALARM_AUTO, function()
 		end
         if conf.misc.use_rtc and got_dst then -- we want rtc
             local rtc = require("ds1307")
-            if rtc.setup(conf.misc.rtc_sda, conf.misc.rtc_scl, conf.misc.rtc_addr) then -- rtc setup ok
+            if rtc.setup() then -- rtc setup ok
                 local t = {}
                 for i in string.gmatch(ntp.getTime(tz), "%d+") do table.insert(t, tonumber(i)) end
                 rtc.setTime(t[1], t[2], t[3])
-                t = nil
                 package.loaded["ds1307"] = nil
                 collectgarbage()
-print("out")
             end
         end
-
+	-- clean a bit
         dst = nil
         package.loaded["getDST"] = nil
         collectgarbage()
@@ -73,8 +91,8 @@ collectgarbage()
 tmr.wdclr()
 tmr.alarm(5, conf.misc.ntpsleep*1000, tmr.ALARM_AUTO, function()
 	local d = require("dns")
-	d.resolveIP("pool.ntp.org",function(r)
-        if r then
+	d.resolveIP("pool.ntp.org", function(r)
+	    if r then
 		    ntp.sync(r, tz, function(tm)
 		        if tm then print("NTP time sync at: "..tm) end
 		    end)
@@ -138,7 +156,8 @@ tmr.alarm(6, delay, tmr.ALARM_AUTO, function()
 	    bmp_table = {t, p, al}
     end
 -- start sending data for all sensors
-    print("Sending data at:", ntp.getTime(tz))
+    -- print("Sending data at:", ntp.getTime(tz))
+    print("Sending data at:", getTime())
 -- stop display timer so it can read fresh data and clear display data table
     if conf.display.use then
         local running, mode = tmr.state(3)
@@ -160,7 +179,8 @@ collectgarbage()
                 table.insert(disp_data, {a, "T", tostring(val)..string.char(176).."C"})
             end
 			if conf.mqtt.use then -- send to mqtt broker
-				local t = ntp.getTime(tz)
+				-- local t = ntp.getTime(tz)
+				local t = getTime()
 				json = cjson.encode({time=t, sensor=a, ds_temp=val})
 				mq.msgSend(client, conf.mqtt.topic.."/sensors/ds18b20", json)
 			end
@@ -178,7 +198,8 @@ collectgarbage()
             end
 			local json = nil
 			if conf.mqtt.use then -- send to mqtt broker
-				local t = ntp.getTime(tz)
+				-- local t = ntp.getTime(tz)
+				local t = getTime()
 				json = cjson.encode({time = t, dht_temp = dht_table[1], humidity = dht_table[2]})
 				mq.msgSend(client, conf.mqtt.topic.."/sensors/dht22", json)
 			end
@@ -194,7 +215,8 @@ collectgarbage()
                 table.insert(disp_data, {"BMP180", "T", tostring(bmp_table[1])..string.char(176).."C", "P", tostring(bmp_table[2]).."mBar"})
             end
 			local json = nil
-			local t = ntp.getTime(tz)
+			-- local t = ntp.getTime(tz)
+			local t = getTime()
 			if conf.mqtt.use then -- send to mqtt broker
 				json = cjson.encode({time = t, bmp_temp = bmp_table[1], pressure = bmp_table[2], alt = bmp_table[3]})
 				mq.msgSend(client, conf.mqtt.topic.."/sensors/bmp180", json)
