@@ -8,21 +8,20 @@ wifi.setmode(wifiConfig.mode)
 wifi.sta.config(conf.wlan.ssid, conf.wlan.pwd)
 wifiConfig = nil
 collectgarbage()
-
 -- print message to console and display, if enabled
 function printout(msg, out)
     if conf.display.use then
-	if package.loaded["display2"] == nil then
-	    display = require("display2")
-	end
-	if out == 2 then -- stderr like, status display
-	    print(msg)
-	    display.disp_stat(disp, msg)
-	elseif out == 1 then -- stdout like, data display
-	    display.disp_data(disp, msg)
-	else
-	    return
-	end
+	    if package.loaded["display2"] == nil then
+	        display = require("display2")
+	    end
+	    if out == 2 then -- stderr like, status display
+	        print(msg)
+	        display.disp_stat(disp, msg)
+	    elseif out == 1 then -- stdout like, data display
+	        display.disp_data(disp, msg)
+	    else
+	        return
+	    end
 	package.loaded["display2"] = nil
 	display = nil
 	collectgarbage()
@@ -40,7 +39,7 @@ if conf.display.use then
         conf.display.use = false
         collectgarbage()
     else -- display initialization ok
-	display = require("display2")
+	    display = require("display2")
     end
 end
 -- clear screen
