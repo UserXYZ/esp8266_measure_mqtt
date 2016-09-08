@@ -21,9 +21,9 @@ end
 function abortInit()
     -- initailize abort boolean flag
     abort = false
-    print("Press ENTER within 5s to abort startup")
+    print("Press 'q' within 5s to abort startup")
     -- if <CR> is pressed, call abortTest
-    uart.on("data", "\r", abortTest, 0)
+    uart.on("data", "q", abortTest, 0)
     -- start timer to execute startup function in 5 seconds
     tmr.alarm(2, 5000, tmr.ALARM_SINGLE, startup)
 end
@@ -45,8 +45,13 @@ function startup()
     serverFiles = nil
     collectgarbage()
     -- start now
-    print("Starting main program")
-    dofile("startup.lc")
+    if file.exists("config.lua") then
+	    print("Starting main program")
+	    dofile("startup.lc")
+    else
+	    print("No config file, aborting!")
+	    return
+    end
 end
 
 tmr.alarm(2, 1000, tmr.ALARM_SINGLE, abortInit) -- call abortInit after 1s
