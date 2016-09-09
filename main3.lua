@@ -11,6 +11,7 @@ if conf.display.use then
 end
 local tz = 0
 local got_dst = false
+local ntp = require("myNtpTime")
 -- get time from ntp or rtc
 function getTime()
     local rtc = nil
@@ -33,7 +34,6 @@ function getTime()
     return t
 end
 -- get DST
-local ntp = require("myNtpTime")
 tmr.wdclr()
 tmr.alarm(4, 5000, tmr.ALARM_AUTO, function()
     local cnt = 0
@@ -160,18 +160,18 @@ tmr.alarm(6, delay, tmr.ALARM_AUTO, function()
 	    if conf.misc.debug then print("Starting measurement with BME280") end
 	    local i = bme280.init(conf.sens.bme_sda, conf.sens.bme_scl)
 	    if i == 2 then -- sensor found, it is BME280
-		local H, T, P, D = nil
-		H, T = bme280.humi()
-		local h, t = string.format("%.1f", H/1000), string.format("%.1f", T/100)
-		P, T = bme280.baro()
-		local p = string.format("%.1f", P/1000)
-		-- local al = string.format("%.1f", (P-101325)*843/10000) -- calculated as for bmp180
-		D = bme280.dewpoint(H, T)
-		local d = string.format("%.1f", D/100)
-		-- bme_table = {h, t, p, al, d} -- humidity, temperature, pressure, altitude, dewpoint
-		bme_table = {h, t, p, d} -- humidity, temperature, pressure, dewpoint
+		    local H, T, P, D = nil
+		    H, T = bme280.humi()
+		    local h, t = string.format("%.1f", H/1000), string.format("%.1f", T/100)
+		    P, T = bme280.baro()
+		    local p = string.format("%.1f", P/1000)
+		    -- local al = string.format("%.1f", (P-101325)*843/10000) -- calculated as for bmp180
+		    D = bme280.dewpoint(H, T)
+		    local d = string.format("%.1f", D/100)
+		    -- bme_table = {h, t, p, al, d} -- humidity, temperature, pressure, altitude, dewpoint
+		    bme_table = {h, t, p, d} -- humidity, temperature, pressure, dewpoint
 	    else
-		print("BME280 not found.")
+		    print("BME280 not found.")
 	    end
     end
 -- start sending data for all sensors
@@ -249,7 +249,7 @@ collectgarbage()
 	-- send bme280 data
 	if conf.sens.bme_enable then
             if conf.display.use then
-                table.insert(disp_data, {"BME280", "T", tostring(bme_table[1])..string.char(176).."C", "P", tostring(bme_table[2]).."mBar"})
+                table.insert(disp_data, {"BME280", "T", tostring(bme_table[2])..string.char(176).."C", "P", tostring(bme_table[3]).."mBar"})
             end
 			local json = nil
 			-- local t = ntp.getTime(tz)
@@ -266,7 +266,7 @@ collectgarbage()
 	end
 -- clean all temporary data structures
 	collectgarbage()
-    tmr.start(3)
+    if conf.display.use then tmr.start(3) end -- start display timer if needed
 end) -- end timer
 -- start timer for data display, if display is enabled
 if conf.display.use then
