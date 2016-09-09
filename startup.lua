@@ -22,9 +22,11 @@ function printout(msg, out)
 	    else
 	        return
 	    end
-	package.loaded["display2"] = nil
-	display = nil
-	collectgarbage()
+	    package.loaded["display2"] = nil
+	    display = nil
+	    collectgarbage()
+    else
+        print(msg)
     end
 end
 
