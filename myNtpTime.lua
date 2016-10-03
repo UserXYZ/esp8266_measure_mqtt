@@ -1,9 +1,6 @@
 local M = {}
 
 local conf = require("config")
-if conf.display.use then
-    display = require("display")
-end
 
 local function getTime(tz)
     local t, h, m, s
@@ -27,11 +24,7 @@ local function sync(ntpsrv,tz,cb)
         end
     end,
     function()
-	local msg="NTP sync failed!"
-        print(msg)
-        if conf.disp.use then
-		    display.disp_stat(msg)
-	    end
+        printout("NTP sync failed!", 2)
         cb(nil)
     end)
 end

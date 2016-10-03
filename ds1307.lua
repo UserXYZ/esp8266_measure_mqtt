@@ -3,7 +3,7 @@ local M = {}
 -- Default value for i2c communication
 local id = 0
 --device address
-local dev_addr = nil
+local conf = require("config")
 
 local function decToBcd(val)
   return((((val/10) - ((val/10)%1)) *16) + (val%10))
@@ -13,23 +13,19 @@ local function bcdToDec(val)
   return((((val/16) - ((val/16)%1)) *10) + (val%16))
 end
 -- initialize RTC
-local function setup(sda, scl, addr)
-    if sda~=nil and scl~=nil and addr~=nil then
-        if (i2c.setup(id, sda, scl, i2c.SLOW)) ~= 0 then
-            print("RTC configured")
-            dev_addr = addr
-        else
-            print("RTC config failed!")
-            return nil
-        end
+local function setup()
+    if (i2c.setup(id, conf.misc.rtc_sda, conf.misc.rtc_scl, i2c.SLOW)) ~= 0 then
+        print("RTC configured")
+        return true
     else
-        print("Wrong RTC parameters!")
+        print("RTC config failed!")
+        return nil
     end
 end
 -- translate day number to text date or vice versa
 local function getDay(day)
     local days = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}
-    if type(day) == "number" and day<8 and day>0 then
+    if type(day) == "number" and day < 8 and day > 0 then
         return days[day]
     elseif type(day) == "string" then
         for k,v in ipairs(days) do
@@ -45,21 +41,21 @@ local function getDay(day)
 end
 --get time from RTC
 local function getTime()
-  i2c.start(id)
-  i2c.address(id, dev_addr, i2c.TRANSMITTER)
-  i2c.write(id, 0x00)
-  i2c.stop(id)
-  i2c.start(id)
-  i2c.address(id, dev_addr, i2c.RECEIVER)
-  local c=i2c.read(id, 7)
-  i2c.stop(id)
-  return bcdToDec(tonumber(string.byte(c, 1))),
-  bcdToDec(tonumber(string.byte(c, 2))),
-  bcdToDec(tonumber(string.byte(c, 3))),
-  bcdToDec(tonumber(string.byte(c, 4))),
-  bcdToDec(tonumber(string.byte(c, 5))),
-  bcdToDec(tonumber(string.byte(c, 6))),
-  bcdToDec(tonumber(string.byte(c, 7)))
+    i2c.start(id)
+    i2c.address(id, conf.misc.rtc_addr, i2c.TRANSMITTER)
+    i2c.write(id, 0x00)
+    i2c.stop(id)
+    i2c.start(id)
+    i2c.address(id, conf.misc.rtc_addr, i2c.RECEIVER)
+    local c=i2c.read(id, 7)
+    i2c.stop(id)
+    return bcdToDec(tonumber(string.byte(c, 1))),
+        bcdToDec(tonumber(string.byte(c, 2))),
+        bcdToDec(tonumber(string.byte(c, 3))),
+        bcdToDec(tonumber(string.byte(c, 4))),
+        bcdToDec(tonumber(string.byte(c, 5))),
+        bcdToDec(tonumber(string.byte(c, 6))),
+        bcdToDec(tonumber(string.byte(c, 7)))
 end
 -- return full date and time in human readable form
 local function getTimeFull()
@@ -76,7 +72,7 @@ local function setTimeFull(hour, minute, second, day, date, month, year)
         year = year-2000
     end
     i2c.start(id)
-    i2c.address(id, dev_addr, i2c.TRANSMITTER)
+    i2c.address(id, conf.misc.rtc_addr, i2c.TRANSMITTER)
     i2c.write(id, 0x00)
     i2c.write(id, decToBcd(second))
     i2c.write(id, decToBcd(minute))
@@ -103,6 +99,12 @@ local function setTimeDate(...)
     
 end
 ]]--
+
+local function setTime(h, m, s)
+    local second, minute, hour, day, date, month, year = getTime()
+    setTimeFull(h, m, s, day, date, month, year)
+end
+--[[
 local function setTime(h, m, ...)
     local second, minute, hour, day, date, month, year = getTime()
     if #arg == 0 then -- only hour and minute given
@@ -118,7 +120,7 @@ local function setTime(h, m, ...)
     end
     setTimeFull(hour, minute, second, day, date, month, year)
 end
-
+]]--
 local function setDate(d, m, y)
     local second, minute, hour, day, date, month, year = getTime()
     if string.len(tostring(y)) == 2 then

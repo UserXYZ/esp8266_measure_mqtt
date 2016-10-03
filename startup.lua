@@ -1,22 +1,3 @@
--- prepare files
-local compileAndRemoveIfNeeded = function(f)
-    if file.open(f) then
-	    file.close()
-	    print('Compiling:', f)
-	    node.compile(f)
-	    file.remove(f)
-	    collectgarbage()
-    end
-end
--- main()
-local serverFiles = {'dns.lua', 'telnet.lua','main3.lua','message3.lua', 'myds3.lua', 'myNtpTime.lua', 'getDST.lua', 'myemoncms.lua', 'button.lua', 'display.lua', 'ds1307.lua', 'startup.lua'}
-for i, f in ipairs(serverFiles) do
-    compileAndRemoveIfNeeded(f)
-end
-
-compileAndRemoveIfNeeded = nil
-serverFiles = nil
-collectgarbage()
 -- start configuration
 local conf = require("config")
 local wifiConfig = {}
@@ -27,89 +8,68 @@ wifi.setmode(wifiConfig.mode)
 wifi.sta.config(conf.wlan.ssid, conf.wlan.pwd)
 wifiConfig = nil
 collectgarbage()
+-- print message to console and display, if enabled
+function printout(msg, out)
+    if conf.display.use then
+	    if package.loaded["display2"] == nil then
+	        display = require("display2")
+	    end
+	    if out == 2 then -- stderr like, status display
+	        print(msg)
+	        display.disp_stat(disp, msg)
+	    elseif out == 1 then -- stdout like, data display
+	        display.disp_data(disp, msg)
+	    else
+	        return
+	    end
+	    package.loaded["display2"] = nil
+	    display = nil
+	    collectgarbage()
+    else
+        print(msg)
+    end
+end
+
 --set display parameters and initialize if display is in use
 if conf.display.use then
-    display = require("display")
-    if display.setup() == nil then -- display setup failed
+    local d = require("display_drv")
+    disp = d.setup()
+    if disp == nil then -- display setup failed
         print("Display setup failed")
-        display = nil
-        package.loaded["display"] = nil
+        package.loaded["display_drv"] = nil
+        package.loaded["display2"] = nil
         conf.display.use = false
         collectgarbage()
+    else -- display initialization ok
+	    display = require("display2")
     end
 end
 -- clear screen
 if conf.display.use then
-    display.cls()
-    display.disp_stat("Booting...")
---    display = nil
---    package.loaded["display"] = nil
---    collectgarbage()
+    display.cls(disp)
+    display.disp_stat(disp, "Booting...")
 end
+
 -- connect to wifi ap
 local joinCounter = 0
 local joinMaxAttempts = 20
 tmr.alarm(1, 5000, tmr.ALARM_AUTO, function()
     local ip = wifi.sta.getip()
     if ip == nil and joinCounter < joinMaxAttempts then
-	    local msg="Connecting to WiFi Access Point..."
-	    print(msg)
-	    if conf.display.use then
---            display = require("display")
-	        display.disp_stat(msg)
---            display = nil
---            package.loaded["display"] = nil
---            collectgarbage()
-	    end
+	    printout("Connecting to WiFi Access Point...", 2)
 	    joinCounter = joinCounter +1
     else
 	    if joinCounter == joinMaxAttempts then
-	        local msg="Failed to connect to WiFi Access Point"
-	        print(msg)
-	        if conf.display.use then
---                display = require("display")
-		        display.disp_stat(msg)
---                display = nil
---                package.loaded["display"] = nil
---                collectgarbage()
-	        end
+	        printout("Failed to connect to WiFi Access Point", 2)
 	    else
-	        local msg="Got IP: "..ip
-	        print(msg)
-	        if conf.display.use then
---                display = require("display")
-		        display.disp_stat(msg)
---                display = nil
---                package.loaded["display"] = nil
---                collectgarbage()
-	        end
-	        print('heap: ',node.heap())
-         -- Uncomment to automatically start everything
---[[
-            tmr.alarm(2, 5000, tmr.ALARM_SINGLE, function()
-                run = true
-                print("Do you want to cancel the startup? Y/N")
-                node.input(inp)
-                if string.lower(inp) == "y" then
-                    print ("Startup cancelled")
-                    tmr.stop(2)
-                    tmr.stop(1)
-                    tmr.unregister(2)
-                    tmr.unregister(1)
-                end
-                else
-                    --dofile("telnet.lc")
-                    --dofile("main3.lc")
-                    --dofile("button.lc")
-                    print("start")
-            end)
-]]--
+	        printout("Got IP: "..ip, 2)
+	        print('heap: ', node.heap())
             --dofile("telnet.lc")
-            dofile("main3.lc")
-            dofile("button.lc")            
+	    dofile("main3.lc")
+	    dofile("button.lc")
 	    end
 	    tmr.stop(1)
-        tmr.unregister(1)
+	    tmr.unregister(1)
 	    joinCounter = nil
 	    joinMaxAttempts = nil
 	    collectgarbage()

@@ -12,7 +12,8 @@ SPEED=115200
 ######################################################################
 HTTP_FILES := $(wildcard http/*)
 LUA_FILES := message3.lua myds3.lua myemoncms.lua myNtpTime.lua getDST.lua \
-init.lua config.lua main3.lua dns.lua telnet.lua button.lua display.lua startup.lua
+init.lua config.lua main3.lua dns.lua telnet.lua button.lua \
+startup.lua display2.lua display_drv.lua
 
 # Print usage
 usage:

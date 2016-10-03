@@ -1,32 +1,7 @@
 local M = {}
-local disp = nil
-local conf = require("config")
 
-local function setup()
-    if string.lower(conf.display.conn) == "i2c" then
-        if i2c.setup(0,conf.display.i2c_sda, conf.display.i2c_scl, i2c.SLOW) ~= 0 then
-            if conf.display.type == "sh1106" then
-                disp = u8g.sh1106_128x64_i2c(conf.display.i2c_addr)
-            elseif conf.display.type == "ssd1306" then
-                disp = u8g.ssd1306_128x64_i2c(conf.display.i2c_addr)
-            else -- display type not known
-                return nil
-            end
-            return true
-        else -- i2c setup failed
-            return nil
-        end
-    --elseif string.lower(conf.display.conn) ~= "spi" then
-    --    spi.setup(1, spi.MASTER, spi.CPOL_LOW, spi.CPHA_LOW, 8, 8)
-    --    disp = u8g.pcd8544_84x48_hw_spi(conf.display.spi_cs, dc, res)
-    --    display.setup(conf.display.spi_miso, conf.display.spi_mosi, conf.display.spi_cs, conf.display.spi_clk)
-    else -- not i2c nor spi display connection
-        print("Wrong type of display selected")
-        return nil
-    end
-end
 -- clear screen
-local function cls()
+local function cls(disp)
     disp:begin()
     disp:firstPage()
     repeat
@@ -35,7 +10,7 @@ local function cls()
     tmr.wdclr()
 end
 -- display status messages
-local function disp_stat(msg)
+local function disp_stat(disp, msg)
     tmr.wdclr()
     disp:begin()
     disp:firstPage()
@@ -68,14 +43,14 @@ local function disp_stat(msg)
                         break
                     end
                 end
-                table.insert(d_txt,temp)
+                table.insert(d_txt, temp)
                 temp = nil
                 i = j
             else
                 j = j+1
             end
             if j > string.len(msg) then
-                table.insert(d_txt, temp)
+                table.insert(d_txt,temp)
             end
         end
     else
@@ -94,11 +69,11 @@ local function disp_stat(msg)
     until disp:nextPage() == false
     tmr.delay(100000)
     tmr.wdclr()
-    d_txt = nil
-    collectgarbage()
+--    d_txt = nil
+--    collectgarbage()
 end
 -- display data from sensors
-local function disp_data(data)
+local function disp_data(disp, data)
     tmr.wdclr()
     disp:firstPage()
     disp:setFont(u8g.font_helvR10)
@@ -129,7 +104,6 @@ local function disp_data(data)
 end
 -- Return module table
 M = {
-    setup = setup,
     cls = cls,
     disp_data = disp_data,
     disp_stat = disp_stat

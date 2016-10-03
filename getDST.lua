@@ -4,10 +4,6 @@ local M = {}
 
 local conf = require("config")
 
-if conf.display.use then
-    display = require("display")
-end
-
 local function getDST(cb)
     if conf.misc.zone == "" then cb("No defined time zone in your config file!") end
 
@@ -49,10 +45,7 @@ local function getDST(cb)
             conn:close()
             conn=nil
             collectgarbage()
-            local msg="DNS can't resolve DST server"..host
-            if conf.display.use then
-        	    display.disp_stat(msg)
-    	    end
+            printout("DNS can't resolve DST server"..host, 2)
             cb(msg)
         end
     end)
